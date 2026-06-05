@@ -1,0 +1,1 @@
+export const db_migration_folder = "./src/db/migrations";

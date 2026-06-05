@@ -7,7 +7,9 @@
   "scripts": {
     "dev": "nodemon",
     "lint": "eslint src",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "hello_world": "tsx ./scripts/scripts.ts hello_world",
+    "db:migrate": "tsx ./scripts/scripts.ts db_migrate"
   },
   "keywords": [],
   "author": "",
