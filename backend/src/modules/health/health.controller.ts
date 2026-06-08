@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { dbHealthCheck } from "../../config/db.js";
+import { dbHealthCheck } from "./health.services.js";
 
 export const getHealthCheck = async (_: Request, res: Response) => {
     const dbHealth = await dbHealthCheck()
