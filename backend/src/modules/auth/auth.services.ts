@@ -2,8 +2,8 @@ import { dbQuery } from "../../config/db.js"
 
 type User = {
     id: string
-    email: string,
-    password_hash: string,
+    email: string
+    password_hash: string
     created_at: string | null
 }
 
