@@ -3,6 +3,7 @@ import { getNextWord, getUserHistory, updateWordProgress } from "./words.control
 
 const wordsRouter: Router = Router()
 
+//* middleware chain: authenticateJWT
 wordsRouter.get("/today", getNextWord)
 wordsRouter.patch("/:wordId/review", updateWordProgress)
 wordsRouter.get("/history", getUserHistory)
