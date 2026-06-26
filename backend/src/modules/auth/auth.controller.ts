@@ -1,8 +1,8 @@
+import z from "zod";
+import bcrypt from "bcrypt"
 import type { Request, Response } from "express";
 import jwt, { type SignOptions } from "jsonwebtoken"
 import env from "../../config/env.js";
-import z from "zod";
-import bcrypt from "bcrypt"
 import { dbGetAuthedUser, dbGetUser, dbInsertUser } from "./auth.services.js";
 
 const loginBody = z.object({
@@ -69,7 +69,7 @@ export async function getAuthedUser(req: Request, res: Response) {
             res.status(401).json("User not found");
             return
         }
-        const queryResult = await dbGetAuthedUser(req.user!.userId)
+        const queryResult = await dbGetAuthedUser(req.user.userId)
         if (!queryResult.rowCount) res.status(401).json("User not found")
         res.status(200).json(queryResult.rows[0])
     } catch (err) {

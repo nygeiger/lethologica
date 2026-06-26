@@ -1,6 +1,6 @@
 import jwt, { type JwtPayload } from "jsonwebtoken"
-import env from "../config/env.js";
 import { type Request, type Response, type NextFunction } from "express"
+import env from "../config/env.js";
 
 export function authenticateJWT(req: Request, res: Response, next: NextFunction) {
     try {

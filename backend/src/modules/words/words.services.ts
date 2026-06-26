@@ -11,7 +11,7 @@ const dbGetTodaysWord = (queryParams: string[]) => {
         JOIN words as w ON w.id = uwp.word_id
         WHERE uwp.user_id=$1 AND uwp.next_review_at<=NOW()
         ORDER BY uwp.next_review_at ASC
-        LIMIT 1;`, queryParams)
+        LIMIT 1`, queryParams)
 }
 
 const dbGetUnseenWord = (queryParams: string[]) => {

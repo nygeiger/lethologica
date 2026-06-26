@@ -1,7 +1,7 @@
+import z from "zod"
 import type { Request, Response } from "express"
 import { dbGetNextWord, dbGetUserHistory, dbGetUserWordProg, dbUpdateUserWordProg } from "./words.services.js"
 import { calculateSM2 } from "./sm2.js"
-import z from "zod"
 import type { UserWordProgress, Word } from "./types.js"
 
 const updateWordSchema = z.object({
@@ -24,7 +24,6 @@ export async function getNextWord(req: Request, res: Response) {
 
 export async function updateWordProgress(req: Request, res: Response) {
     try {
-        // Route will never reach here if user isn't authenticated
         const userId = req.user!.userId
         const updateWordReq = updateWordSchema.parse({ ...req.params, ...req.body })
         const wordProgress = (await dbGetUserWordProg(userId, updateWordReq.wordId)).rows[0]
