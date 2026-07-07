@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { dbAddWordToList, dbCreateList, dbDeleteList, dbGetList, dbGetLists, dbRemoveWordFromList, dbRenameList } from "./lists.services.js";
 import z from "zod"
+import env from "../../config/env.js";
 
 const getListSchema = z.object({
     userId: z.string(),
@@ -33,17 +34,16 @@ const removeWordSchema = z.object({
 
 export async function getAllLists(req: Request, res: Response) {
     try {
-        console.log("In get all lists")
-
+        if (env.NODE_ENV !== "production") console.log("In get all lists")
         const lists = await dbGetLists(req.user!.userId)
-        console.log("lists: ", lists)
+        if (env.NODE_ENV !== "production") console.log("lists: ", lists)
         if (!lists.rowCount) {
             res.status(404).json({ message: "No lists found" })
             return
         }
         res.status(200).json(lists.rows)
     } catch (err) {
-        console.log(err)
+        if (env.NODE_ENV !== "production") console.log(err)
         if (err instanceof z.ZodError) {
             res.status(400).json(err.message)
             return
@@ -58,18 +58,18 @@ export async function getAllLists(req: Request, res: Response) {
 
 export async function getList(req: Request, res: Response) {
     try {
-        console.log("In get list")
+        if (env.NODE_ENV !== "production") console.log("In get list")
 
         const listReq = getListSchema.parse({ ...req.user!, ...req.params })
         const list = await dbGetList(listReq.userId, listReq.listId)
-        console.log("list: ", list)
+        if (env.NODE_ENV !== "production") console.log("list: ", list)
         if (!list.rowCount) {
             res.status(404).json({ message: "No list found" })
             return
         }
         res.status(200).json(list.rows[0])
     } catch (err) {
-        console.log(err)
+        if (env.NODE_ENV !== "production") console.log(err)
         if (err instanceof z.ZodError) {
             res.status(400).json(err.message)
             return
@@ -84,14 +84,14 @@ export async function getList(req: Request, res: Response) {
 
 export async function createList(req: Request, res: Response) {
     try {
-        console.log("in createList")
+        if (env.NODE_ENV !== "production") console.log("in createList")
 
         const createListRq = createListSchema.parse({ ...req.user!, ...req.body })
         const newList = await dbCreateList(createListRq.userId, createListRq.listName)
-        console.log("createdList: ", newList)
+        if (env.NODE_ENV !== "production") console.log("createdList: ", newList)
         res.status(201).json({ message: `List "${newList.rows[0]?.list_name}" created successfully` })
     } catch (err) {
-        console.log(err)
+        if (env.NODE_ENV !== "production") console.log(err)
         if (err instanceof z.ZodError) {
             res.status(400).json(err.message)
             return
@@ -106,13 +106,13 @@ export async function createList(req: Request, res: Response) {
 
 export async function addWordToList(req: Request, res: Response) {
     try {
-        console.log("in addWordToList")
+        if (env.NODE_ENV !== "production") console.log("in addWordToList")
         const createListRq = addWordToListSchema.parse({ ...req.params })
         const addedWord = await dbAddWordToList(createListRq.listId, createListRq.wordId)
-        console.log("addedWord: ", addedWord)
+        if (env.NODE_ENV !== "production") console.log("addedWord: ", addedWord)
         res.status(201).json({ message: `${addedWord.rows[0]?.word} added to ${addedWord.rows[0]!.list_name} successfully` })
     } catch (err) {
-        console.log(err)
+        if (env.NODE_ENV !== "production") console.log(err)
         if (err instanceof z.ZodError) {
             res.status(400).json(err.message)
             return
@@ -131,7 +131,7 @@ export async function addWordToList(req: Request, res: Response) {
 
 export async function renameList(req: Request, res: Response) {
     try {
-        console.log("in renameList")
+        if (env.NODE_ENV !== "production") console.log("in renameList")
 
         const renameListReq = renameListSchema.parse({ ...req.params, ...req.body })
         const list = await dbRenameList(renameListReq.listId, renameListReq.newName)
@@ -151,11 +151,11 @@ export async function renameList(req: Request, res: Response) {
 
 export async function deleteList(req: Request, res: Response) {
     try {
-        console.log("in deleteList")
+        if (env.NODE_ENV !== "production") console.log("in deleteList")
 
         const deleteListReq = deleteListSchema.parse({ ...req.params })
         const deletedList = await dbDeleteList(deleteListReq.listId)
-        console.log("deleteList: ", deletedList)
+        if (env.NODE_ENV !== "production") console.log("deleteList: ", deletedList)
         res.status(200).json({ message: `Deleted "${deletedList.rows[0]!.list_name}" successfully` })
     } catch (err) {
         if (err instanceof z.ZodError) {
@@ -172,13 +172,13 @@ export async function deleteList(req: Request, res: Response) {
 
 export async function removeWordFromList(req: Request, res: Response) {
     try {
-        console.log("in removeWordFromList")
+        if (env.NODE_ENV !== "production") console.log("in removeWordFromList")
 
         const removeWordReq = removeWordSchema.parse({ ...req.params })
         const removedWord = await dbRemoveWordFromList(removeWordReq.listId, removeWordReq.wordId)
         res.status(200).json({ message: `Removed ${removedWord.rows[0]?.word} from ${removedWord.rows[0]?.list_name} successfully` })
     } catch (err) {
-        console.log(err)
+        if (env.NODE_ENV !== "production") console.log(err)
         if (err instanceof z.ZodError) {
             res.status(400).json(err.message)
             return
