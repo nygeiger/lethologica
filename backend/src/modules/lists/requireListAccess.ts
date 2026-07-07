@@ -1,21 +1,12 @@
 import type { NextFunction, Request, Response } from "express";
 import { dbQuery } from "../../config/db.js";
 import z from "zod";
+import { type Permission, rolePermissions, type Role } from "./types.js";
 
 const permReqSchema = z.object({
     userId: z.string(),
     listId: z.string()
 })
-
-type Permission = "canShare" | "canEdit" | "canView" | "isOwner"
-
-export const rolePermissions = new Map<string, Permission[]>(
-    [
-        ["owner", ["canShare", "canEdit", "canView", "isOwner"]],
-        ["editor", ["canEdit", "canView"]],
-        ["viewer", ["canView"]]
-    ]
-)
 
 //* middleware chain: authenticateJWT
 export function requirePermission(requiredPerm: Permission) {
@@ -27,7 +18,7 @@ export function requirePermission(requiredPerm: Permission) {
                 return next()
             }
             const listRoleResult = (await dbQuery<{ role: string }>("SELECT role FROM list_shares WHERE shared_with_user_id=$1 AND list_id=$2", [reqVals.userId, reqVals.listId]))
-            if (listRoleResult.rows[0] && rolePermissions.get(listRoleResult.rows[0].role)?.includes(requiredPerm)) {
+            if (listRoleResult.rows[0] && rolePermissions.get(listRoleResult.rows[0].role as Role)?.includes(requiredPerm)) {
                 return next()
             }
             res.status(403).json({ message: "Insufficient permissions for action" })
