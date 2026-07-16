@@ -29,5 +29,5 @@ jobs:
             pnpm install --frozen-lockfile
             pnpm build
             source ./scripts/fetch-ssm-params.sh
-            pm2 restart lethologica --update-env || pm2 start dist/index.js --name lethologica
+            pm2 restart lethologica --update-env || pm2 start dist/src/server.js --name lethologica
             pm2 save
