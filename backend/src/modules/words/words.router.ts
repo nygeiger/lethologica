@@ -8,4 +8,4 @@ wordsRouter.get("/today", getNextWord)
 wordsRouter.patch("/:wordId/review", updateWordProgress)
 wordsRouter.get("/history", getUserHistory)
 
-export default wordsRouter
+export default wordsRouter;
