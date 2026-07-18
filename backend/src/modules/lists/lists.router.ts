@@ -15,7 +15,7 @@ listsRouter.post("/:listId/words/:wordId", requirePermission("canEdit"), addWord
 listsRouter.patch("/:listId", requirePermission("canEdit"), renameList)
 
 listsRouter.delete("/:listId", requirePermission("isOwner"), deleteList)
-// change this to req.body to enable batch removal?
+//?: change this to req.body to enable batch removal?
 listsRouter.delete("/:listId/words/:wordId", requirePermission("canEdit"), removeWordFromList)
 
 listsRouter.use("/:listId/shares", requirePermission("isOwner"), sharesRouter)

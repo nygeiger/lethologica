@@ -19,5 +19,5 @@ type ENV = {
     JWT_EXPIRES_IN: string
 }
 
-const env: ENV = envSchema.parse(process.env);
+const env: ENV = envSchema.parse(process.env)
 export default env;

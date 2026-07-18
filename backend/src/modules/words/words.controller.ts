@@ -3,6 +3,7 @@ import type { Request, Response } from "express"
 import { dbGetNextWord, dbGetUserHistory, dbGetUserWordProg, dbUpdateUserWordProg } from "./words.services.js"
 import { calculateSM2 } from "./sm2.js"
 import type { UserWordProgress, Word } from "./types.js"
+import logger from "../../utils/logger.js"
 
 const updateWordSchema = z.object({
     wordId: z.coerce.number(),
@@ -11,6 +12,7 @@ const updateWordSchema = z.object({
 
 export async function getNextWord(req: Request, res: Response) {
     try {
+        logger.debug("In getNextWord")
         const wordResult = (await dbGetNextWord(req.user!.userId)).rows[0]
         if (!wordResult) {
             res.status(404).json({ message: "No words available" })
@@ -18,12 +20,14 @@ export async function getNextWord(req: Request, res: Response) {
         }
         res.status(200).json(wordResult)
     } catch (err) {
+        logger.error(err, "Error retrieving word")
         res.status(500).json("Error retrieving word")
     }
 }
 
 export async function updateWordProgress(req: Request, res: Response) {
     try {
+        logger.debug("in updateWordProgress")
         const userId = req.user!.userId
         const updateWordReq = updateWordSchema.parse({ ...req.params, ...req.body })
         const wordProgress = (await dbGetUserWordProg(userId, updateWordReq.wordId)).rows[0]
@@ -43,6 +47,7 @@ export async function updateWordProgress(req: Request, res: Response) {
         await dbUpdateUserWordProg(updatedWordProgress) // * id will be blank on insert
         res.status(200).json(updatedWordProgress)
     } catch (err) {
+        logger.error(err, "error updating word")
         if (err instanceof z.ZodError) {
             res.status(400).json(err.message)
             return
@@ -51,20 +56,22 @@ export async function updateWordProgress(req: Request, res: Response) {
             res.status(500).json(err.code)
             return
         }
-        res.status(500).json({message: "error updating word"})
+        res.status(500).json({ message: "error updating word" })
     }
 }
 
 export async function getUserHistory(req: Request, res: Response) {
+    logger.debug("in getUserHistory")
     try {
         const userId = req.user!.userId
         const wordHistory: Word[] = (await dbGetUserHistory(userId)).rows
         if (!wordHistory) {
-            res.status(404).json({message: "Now history available"})
+            res.status(404).json({ message: "No history available" })
             return
         }
         res.status(200).json(wordHistory)
     } catch (err) {
-        res.status(500).json({message: "Error fetching word history"})
+        logger.error(err, "Error fetching word history")
+        res.status(500).json({ message: "Error fetching word history" })
     }
 }

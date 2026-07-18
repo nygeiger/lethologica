@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import { dbQuery } from "../../config/db.js";
 import z from "zod";
 import { type Permission, rolePermissions, type Role } from "./types.js";
+import logger from "../../utils/logger.js";
 
 const permReqSchema = z.object({
     userId: z.string(),
@@ -23,6 +24,7 @@ export function requirePermission(requiredPerm: Permission) {
             }
             res.status(403).json({ message: "Insufficient permissions for action" })
         } catch (err) {
+            logger.error({err, ...req.user}, "Error resolving user's list permissions")
             res.status(500).json({ message: "Error retrieving list permission" })
         }
     }

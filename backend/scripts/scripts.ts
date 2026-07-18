@@ -1,5 +1,6 @@
 import { executeMigrationScripts, executeSeedScripts } from "../src/db/migrate.js";
 import { db_migration_folder, db_seeding_folder } from "../src/utils/constants.js";
+import logger from "../src/utils/logger.js";
 
 const taskName = process.argv[2]
 
@@ -12,10 +13,10 @@ const run = async () => {
             await executeSeedScripts(db_seeding_folder)
             break
         case "hello_world":
-            console.log("Hello World")
+            logger.info("Hello World")
             break
         default:
-            console.log("ERROR: Unknown script")
+            logger.info("ERROR: Unknown script")
             process.exit(1)
     }
 }

@@ -23,11 +23,11 @@ export function calculateSM2(progress: UserWordProgress, rating: number): Update
     let new_interval_days = 1
 
     if (rating < 3) {
-        new_interval_days = 1;
+        new_interval_days = 1
     } else if (progress.times_reviewed === 0 || progress.times_reviewed === 1) {
-        new_interval_days = 1;
+        new_interval_days = 1
     } else if (progress.times_reviewed === 2) {
-        new_interval_days = 6;
+        new_interval_days = 6
     } else {
         new_interval_days = Math.round(progress.interval_days * new_ease_factor)// (rounded)
     }

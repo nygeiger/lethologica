@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 import z from "zod";
 import { dbAddListShare, dbDeleteListShare, dbGetListShares, dbUpdateListSharePermission } from "./shares.services.js";
 import { roles } from "../lists/types.js";
-import env from '../../config/env.js';
+import logger from "../../utils/logger.js";
 
 const getSharesSchema = z.object({
     listId: z.string(),
@@ -25,16 +25,16 @@ const deleteShareSchema = z.object({
 
 export async function getShares(req: Request, res: Response) {
     try {
-        if (env.NODE_ENV !== "production") console.log("In get list shares")
         const getSharesReq = getSharesSchema.parse({ ...req.params })
         const listShares = await dbGetListShares(getSharesReq.listId)
         if (!listShares.rowCount) {
             res.status(200).json({ message: "No shares found" })
             return
         }
+        logger.debug(listShares)
         res.status(200).json(listShares.rows)
     } catch (err) {
-        if (env.NODE_ENV === "development") console.log(err)
+        logger.error({ err, ...req.params }, "Error retrieving shares for list")
         if (err instanceof z.ZodError) {
             res.status(400).json(err.message)
             return
@@ -49,17 +49,16 @@ export async function getShares(req: Request, res: Response) {
 
 export async function addShare(req: Request, res: Response) {
     try {
-        if (env.NODE_ENV !== "production") console.log("In add list share")
         const addShareReq = addShareSchema.parse({ ...req.params, ...req.body })
         const newShare = await dbAddListShare(addShareReq.userEmail, addShareReq.listId, addShareReq.role)
         if (!newShare.rowCount) {
             res.status(404).json({ message: "No user found with that email" })
             return
         }
-        if (env.NODE_ENV !== "production") console.log(newShare)
+        logger.debug(newShare)
         res.status(200).json({ message: "Successfully added user to list" })
     } catch (err) {
-        if (env.NODE_ENV !== "production") console.log(err)
+        logger.error(err)
         if (err instanceof z.ZodError) {
             res.status(400).json(err.message)
             return
@@ -74,17 +73,17 @@ export async function addShare(req: Request, res: Response) {
 
 export async function updateShare(req: Request, res: Response) {
     try {
-        if (env.NODE_ENV !== "production") console.log("In update list share")
+        logger.debug("In update list share")
         const updateShareReq = updateShareSchema.parse({ ...req.params, ...req.body })
         const updatedShare = await dbUpdateListSharePermission(updateShareReq.shareId, updateShareReq.role)
         if (!updatedShare.rowCount) {
             res.status(404).json({ message: "Failed to update share settings" })
             return
         }
-        if (env.NODE_ENV !== "production") console.log(updatedShare)
+        logger.debug(updatedShare)
         res.status(200).json({ message: `updated user's role to ${updateShareReq.role}` })
     } catch (err) {
-        if (env.NODE_ENV !== "production") console.log(err)
+        logger.error(err)
         if (err instanceof z.ZodError) {
             res.status(400).json(err.message)
             return
@@ -107,7 +106,7 @@ export async function deleteShare(req: Request, res: Response) {
         }
         res.status(200).json({ message: "Removed user from list successfully" })
     } catch (err) {
-        if (env.NODE_ENV !== "production") console.log(err)
+        logger.error(err)
         if (err instanceof z.ZodError) {
             res.status(400).json(err.message)
             return
