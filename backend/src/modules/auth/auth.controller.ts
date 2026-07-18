@@ -4,6 +4,7 @@ import type { Request, Response } from "express";
 import jwt, { type SignOptions } from "jsonwebtoken"
 import env from "../../config/env.js";
 import { dbGetAuthedUser, dbGetUser, dbInsertUser } from "./auth.services.js";
+import logger from "../../utils/logger.js";
 
 const loginBody = z.object({
     email: z.email(),
@@ -24,7 +25,8 @@ export async function authLogin(req: Request, res: Response) {
         const requestCred = loginBody.parse(req.body)
         const queryResult = await dbGetUser(requestCred.email)
         if (!queryResult.rowCount) {
-            res.status(404).json({ message: "User not found" });
+            res.status(401).json({ message: "login failed" })
+            logger.warn(requestCred, "Login attempt for non-existent user")
             return
         }
         const user = queryResult.rows[0]!
@@ -34,9 +36,10 @@ export async function authLogin(req: Request, res: Response) {
             return
         }
         const token = signJWT(user.id)
-        res.status(200).json(token);
+        res.status(200).json(token)
     }
     catch (err) {
+        logger.error({ err, ...req.body}, "Error Authenticating User")
         res.status(500).send()
     }
 }
@@ -48,6 +51,7 @@ export async function authRegister(req: Request, res: Response) {
         const token = signJWT(queryResult.rows[0]!.id)
         res.status(201).json(token)
     } catch (err) {
+        logger.error({err, ...req.body}, "Error Registering User")
         if (err instanceof Error && "code" in err) {
             switch (err.code) {
                 case "23505":
@@ -66,13 +70,14 @@ export async function authRegister(req: Request, res: Response) {
 export async function getAuthedUser(req: Request, res: Response) {
     try {
         if (!req.user) {
-            res.status(401).json("User not found");
+            res.status(401).json("User not found")
             return
         }
         const queryResult = await dbGetAuthedUser(req.user.userId)
         if (!queryResult.rowCount) res.status(401).json("User not found")
         res.status(200).json(queryResult.rows[0])
     } catch (err) {
+        logger.error(err, "Error authenticating user")
         res.status(401).send()
     }
 }
