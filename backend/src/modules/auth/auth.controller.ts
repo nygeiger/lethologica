@@ -25,8 +25,8 @@ export async function authLogin(req: Request, res: Response) {
         const requestCred = loginBody.parse(req.body)
         const queryResult = await dbGetUser(requestCred.email)
         if (!queryResult.rowCount) {
-            res.status(401).json({ message: "login failed" })
-            logger.warn(requestCred, "Login attempt for non-existent user")
+            logger.warn({ userEmail: requestCred.email }, "Login attempt for non-existent user")
+            res.status(404).json({ message: "login failed" })
             return
         }
         const user = queryResult.rows[0]!
@@ -39,8 +39,16 @@ export async function authLogin(req: Request, res: Response) {
         res.status(200).json(token)
     }
     catch (err) {
-        logger.error({ err, ...req.body}, "Error Authenticating User")
-        res.status(500).send()
+        logger.error({ err, ...req.body.email }, "Error Authenticating User")
+        if (err instanceof z.ZodError) {
+            res.status(400).json(err.message)
+            return
+        }
+        if (err instanceof Error && "code" in err) {
+            res.status(500).json(err.code)
+            return
+        }
+        res.status(500).json({ message: "Failed User login" })
     }
 }
 
@@ -48,22 +56,33 @@ export async function authRegister(req: Request, res: Response) {
     try {
         const requestCred = registerBody.parse(req.body)
         const queryResult = await dbInsertUser(requestCred.email, await bcrypt.hash(requestCred.pass, 10))
-        const token = signJWT(queryResult.rows[0]!.id)
+        const newUser = queryResult.rows[0]
+        if (!newUser) {
+            logger.error({ userEmail: requestCred.email }, "Failed to create new user when registering")
+            res.status(500).json({ message: "Registration failed" })
+            return
+        }
+        const token = signJWT(newUser.id)
         res.status(201).json(token)
     } catch (err) {
-        logger.error({err, ...req.body}, "Error Registering User")
+        logger.error({ err, ...req.body.email }, "Error Registering User")
+        if (err instanceof z.ZodError) {
+            res.status(400).json(err.message)
+            return
+        }
         if (err instanceof Error && "code" in err) {
             switch (err.code) {
                 case "23505":
-                    res.status(401).json({ message: "email is already taken" })
+                    res.status(409).json({ message: "email is already taken" })
                     break;
                 default:
                     res.status(401).json({ message: "user registration failed, Please contact dev team" })
                     break;
             }
-        } else {
-            res.status(500).send()
+            return
         }
+        res.status(500).send()
+
     }
 }
 
@@ -74,10 +93,14 @@ export async function getAuthedUser(req: Request, res: Response) {
             return
         }
         const queryResult = await dbGetAuthedUser(req.user.userId)
-        if (!queryResult.rowCount) res.status(401).json("User not found")
+        if (!queryResult.rowCount) {
+            logger.error({ ...req.user }, "Failed to find authenticated user")
+            res.status(401).json({ message: "User not found" })
+            return
+        }
         res.status(200).json(queryResult.rows[0])
     } catch (err) {
         logger.error(err, "Error authenticating user")
-        res.status(401).send()
+        res.status(401).send({ message: "Error authenticating user" })
     }
 }
