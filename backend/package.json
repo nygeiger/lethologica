@@ -9,7 +9,7 @@
     "lint": "eslint src",
     "build": "tsc --project tsconfig.json",
     "start": "node dist/src/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest run",
     "hello_world": "tsx ./scripts/scripts.ts hello_world",
     "db:migrate": "tsx ./scripts/scripts.ts db_migrate",
     "db:seed": "tsx ./scripts/scripts.ts db_seed"
