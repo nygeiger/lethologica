@@ -26,7 +26,7 @@ export async function authLogin(req: Request, res: Response) {
         const queryResult = await dbGetUser(requestCred.email)
         if (!queryResult.rowCount) {
             logger.warn({ userEmail: requestCred.email }, "Login attempt for non-existent user")
-            res.status(404).json({ message: "login failed" })
+            res.status(401).json({ message: "login failed" })
             return
         }
         const user = queryResult.rows[0]!

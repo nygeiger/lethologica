@@ -9,7 +9,7 @@ const run = async () => {
         case "db_migrate":
             await executeMigrationScripts(db_migration_folder)
             break
-            case "db_seed":
+        case "db_seed":
             await executeSeedScripts(db_seeding_folder)
             break
         case "hello_world":
