@@ -1,15 +1,9 @@
 import request from 'supertest'
 import { beforeAll, describe, expect, it } from 'vitest'
+import jwt from 'jsonwebtoken'
 import z from 'zod';
-import { dbQuery } from '../../src/config/db.js';
 import app from '../../src/server.js'
-
-// const response = await request(app).post('/api/auth/register').send({
-//   email: 'test@example.com',
-//   pass: 'password123'
-// })
-
-// expect(response.status).toBe(201)
+import { testEnv } from '../../src/config/env.js';
 
 /*
 POST /api/auth/register — happy path returns 201 and a token
@@ -40,13 +34,12 @@ beforeAll(async () => {
 describe('POST /api/auth/register', () => {
 
     it('happy path returns 201 and a token', async () => {
-        const tokenRegex: RegExp = /^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]*$/
         const response = await request(app).post('/api/auth/register').send({
             email: 'test@example.com',
             pass: 'password123'
         })
         expect(response.status).toBe(201)
-        expect(tokenRegex.test(response.body)).toBe(true)
+        expect(jwt.verify(response.body, testEnv.JWT_SECRET)).toBeDefined()
     })
 
     it('duplicate email returns 409', async () => {
@@ -60,13 +53,12 @@ describe('POST /api/auth/register', () => {
 
 describe('POST /api/auth/login', () => {
     it('happy path returns 200 and a token', async () => {
-        const tokenRegex: RegExp = /^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]*$/
         const response = await request(app).post('/api/auth/login').send({
             email: 'test@example.com',
             pass: 'password123'
         })
         expect(response.status).toBe(200)
-        expect(tokenRegex.test(response.body)).toBe(true)
+        expect(jwt.verify(response.body, testEnv.JWT_SECRET)).toBeDefined()
     })
 
     it('wrong password returns 401', async () => {
@@ -93,7 +85,7 @@ describe('GET /api/auth/me', () => {
             .set('Authorization', `Bearer ${token}`)
             .send()
         expect(response.status).toBe(200)
-        expect(authedLoginResponse.safeParse(response.body).error).toBeUndefined()
+        expect(authedLoginResponse.safeParse(response.body).success).toBe(true)
     })
 
     it('no token returns 401', async () => {

@@ -7,7 +7,7 @@ import logger from "../../utils/logger.js"
 
 const updateWordSchema = z.object({
     wordId: z.coerce.number(),
-    rating: z.number()
+    rating: z.coerce.number().min(0).max(5)
 })
 
 export async function getNextWord(req: Request, res: Response) {
