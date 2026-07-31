@@ -3,7 +3,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import jwt from 'jsonwebtoken'
 import z from 'zod';
 import app from '../../src/server.js'
-import { testEnv } from '../../src/config/env.js';
+import testEnv from '../config/env.js';
 
 /*
 POST /api/auth/register — happy path returns 201 and a token
