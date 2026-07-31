@@ -17,7 +17,7 @@ const registerBody = z.object({
 })
 
 const signJWT = (userId: string) => {
-    return jwt.sign({ userId: userId }, env.JWT_SECRET, { expiresIn: env.JWT_EXPIRES_IN as SignOptions["expiresIn"] || "7d" })
+        return jwt.sign({ userId: userId }, env.JWT_SECRET, { expiresIn: env.JWT_EXPIRES_IN as SignOptions["expiresIn"] || "7d" })
 }
 
 export async function authLogin(req: Request, res: Response) {

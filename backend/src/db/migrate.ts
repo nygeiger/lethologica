@@ -12,7 +12,7 @@ export async function executeMigrationScripts(folderPath: string) {
         // Returns an array of filenames in the directory
         const files = (await readdir(folderPath)).filter(f => f.endsWith(".sql")).sort();
 
-        logger.info(`DB connection string: , ${env.DATABASE_URL}`)
+        logger.debug(`DB connection string: , ${env.DATABASE_URL}`)
         for (const file of files) {
             const currentFilePath = join(folderPath, file)
             if (migratedFiles.includes(file)) {

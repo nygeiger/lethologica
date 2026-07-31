@@ -1,5 +1,5 @@
 import { dbQuery } from "../../config/db.js"
-import type { UserWordProgress, Word } from "./types.js"
+import type { JoinedWordAndUWPResult, UserWordProgress, Word } from "./types.js"
 
 //* If the two tables had conflicting columns, they would overwrite each other
 type WordQueryResult = Word & Partial<UserWordProgress>
@@ -70,13 +70,13 @@ export const dbUpdateUserWordProg = (wordProgress: UserWordProgress) => {
             WHERE id=$1`, queryParams
         )
     } else {
-        const queryParams = [ wordProgress.user_id, wordProgress.word_id,
-            wordProgress.ease_factor,
-            wordProgress.interval_days,
-            wordProgress.next_review_at,
-            wordProgress.last_reviewed_at,
-            wordProgress.times_reviewed,
-            wordProgress.times_correct
+        const queryParams = [wordProgress.user_id, wordProgress.word_id,
+        wordProgress.ease_factor,
+        wordProgress.interval_days,
+        wordProgress.next_review_at,
+        wordProgress.last_reviewed_at,
+        wordProgress.times_reviewed,
+        wordProgress.times_correct
         ]
         return dbQuery<UserWordProgress>(
             `INSERT INTO user_word_progress (user_id, word_id, ease_factor, interval_days, next_review_at, last_reviewed_at, times_reviewed, times_correct) Values
@@ -88,8 +88,9 @@ export const dbUpdateUserWordProg = (wordProgress: UserWordProgress) => {
 export const dbGetUserHistory = async (userId: string) => {
     const queryParams = [userId]
     //TODO: Add pagination
-    return dbQuery<Word & UserWordProgress>(
-        `SELECT w.*, uwp.*
+
+    return dbQuery<JoinedWordAndUWPResult>(
+        `SELECT to_jsonb(w.*) as word, to_jsonb(uwp.*) as uwp
         FROM user_word_progress as uwp
         JOIN words as w ON w.id = uwp.word_id
         WHERE uwp.user_id=$1
