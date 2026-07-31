@@ -2,7 +2,7 @@ import z from "zod"
 import type { Request, Response } from "express"
 import { dbGetNextWord, dbGetUserHistory, dbGetUserWordProg, dbUpdateUserWordProg } from "./words.services.js"
 import { calculateSM2 } from "./sm2.js"
-import type { UserWordProgress, Word } from "./types.js"
+import type { JoinedWordAndUWPResult, UserWordProgress } from "./types.js"
 import logger from "../../utils/logger.js"
 
 const updateWordSchema = z.object({
@@ -64,11 +64,12 @@ export async function getUserHistory(req: Request, res: Response) {
     logger.debug("in getUserHistory")
     try {
         const userId = req.user!.userId
-        const wordHistory: Word[] = (await dbGetUserHistory(userId)).rows
-        if (!wordHistory) {
-            res.status(404).json({ message: "No history available" })
+        const wordHistory: JoinedWordAndUWPResult[] = (await dbGetUserHistory(userId)).rows
+        if (!wordHistory[0]) {
+            res.status(200).json([])
             return
         }
+        logger.debug(wordHistory, "printing user history")
         res.status(200).json(wordHistory)
     } catch (err) {
         logger.error(err, "Error fetching word history")
