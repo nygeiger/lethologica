@@ -2,7 +2,7 @@ import request from 'supertest';
 import { beforeAll, describe, expect, it } from "vitest";
 import app from "../../src/server.js";
 import { JoinedWordAndUWPResultSchema, userWordProgressSchema, wordSchema, type Word } from "../../src/modules/words/types.js";
-import { testDbQuery } from "../setup/globalSetup.js";
+import { testDbQuery } from '../config/db.js';
 
 /*
 GET /api/words/today — returns a word for an authenticated user
