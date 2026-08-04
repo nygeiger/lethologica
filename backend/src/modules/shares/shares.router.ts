@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { getShares, addShare, updateShare, deleteShare } from "./shares.controller.js";
 
+//* middleware chain: authenticateJWT
 const sharesRouter: Router = Router({mergeParams: true})
 /*
 * GET /api/lists/:listId/shares — get current shares for a list (owner only)
