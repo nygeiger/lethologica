@@ -1,4 +1,5 @@
 import express, { type Express } from "express"
+import cors from "cors";
 import env from "./config/env.js"
 import healthRoute from "./modules/health/health.router.js";
 import authRoute from "./modules/auth/auth.routes.js";
@@ -9,6 +10,7 @@ import logger from "./utils/logger.js";
 
 const app: Express = express()
 app.use(express.json())
+app.use(cors());
 app.use("/api/health", healthRoute)
 app.use("/api/auth", authRoute)
 app.use("/api/words", authenticateJWT, wordsRouter)
