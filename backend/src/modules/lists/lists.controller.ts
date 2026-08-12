@@ -10,7 +10,7 @@ const getListSchema = z.object({
 
 const createListSchema = z.object({
     userId: z.string(),
-    listName: z.string()
+    listName: z.string().min(1)
 })
 
 const addWordToListSchema = z.object({
@@ -88,11 +88,14 @@ export async function createList(req: Request, res: Response) {
     } catch (err) {
         logger.error(err)
         if (err instanceof z.ZodError) {
-            res.status(400).json(err.message)
+            res.status(400).json(err)
             return
         }
         if (err instanceof Error && "code" in err) {
-            res.status(500).json(err.code)
+            if (err.code === "23505") {
+                res.status(500).json({ message: "List already exists" })
+            }
+            res.status(500).json(err)
             return
         }
         res.status(500).json({ message: "Failed to create list" })
@@ -108,18 +111,22 @@ export async function addWordToList(req: Request, res: Response) {
     } catch (err) {
         logger.error(err)
         if (err instanceof z.ZodError) {
-            res.status(400).json(err.message)
+            res.status(400).json(err)
             return
         }
         if (err instanceof Error && "code" in err) {
             if (err.code === "23505") {
-                res.status(200).json({message: "Word already in list"})
+                res.status(200).json({ message: "Word already in list" })
                 return
             }
-            res.status(500).json(err.code)
+            if (err.code === "23503") {
+                res.status(404).json({ message: "Unknown wordId" })
+                return
+            }
+            res.status(500).json(err)
             return
         }
-        res.status(404).json({ message: "Failed to add word to list" })
+        res.status(404).json(err)
     }
 }
 
@@ -131,7 +138,7 @@ export async function renameList(req: Request, res: Response) {
     } catch (err) {
         logger.error(err)
         if (err instanceof z.ZodError) {
-            res.status(400).json(err.message)
+            res.status(400).json(err)
             return
         }
         if (err instanceof Error && "code" in err) {
@@ -167,8 +174,12 @@ export async function removeWordFromList(req: Request, res: Response) {
         logger.debug("in removeWordFromList")
 
         const removeWordReq = removeWordSchema.parse({ ...req.params })
-        const removedWord = await dbRemoveWordFromList(removeWordReq.listId, removeWordReq.wordId)
-        res.status(200).json({ message: `Removed ${removedWord.rows[0]?.word} from ${removedWord.rows[0]?.list_name} successfully` })
+        const removedWordResult = await dbRemoveWordFromList(removeWordReq.listId, removeWordReq.wordId)
+        if (!removedWordResult.rowCount) {
+            res.status(404).json({message: "word not found in list"})
+            return
+        }
+        res.status(200).json({ message: `Removed ${removedWordResult.rows[0]?.word} from ${removedWordResult.rows[0]?.list_name} successfully` })
     } catch (err) {
         logger.error(err)
         if (err instanceof z.ZodError) {
