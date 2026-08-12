@@ -12,7 +12,7 @@ listsRouter.get("/:listId", requirePermission("canView"), getList)
 listsRouter.post("/", createList)
 listsRouter.post("/:listId/words/:wordId", requirePermission("canEdit"), addWordToList)
 
-listsRouter.patch("/:listId", requirePermission("canEdit"), renameList)
+listsRouter.patch("/:listId", requirePermission("isOwner"), renameList)
 
 listsRouter.delete("/:listId", requirePermission("isOwner"), deleteList)
 //?: change this to req.body to enable batch removal?

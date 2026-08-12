@@ -13,7 +13,7 @@ const loginBody = z.object({
 
 const registerBody = z.object({
     email: z.email(),
-    pass: z.string()
+    pass: z.string().min(5)
 })
 
 const signJWT = (userId: string) => {
@@ -67,7 +67,7 @@ export async function authRegister(req: Request, res: Response) {
     } catch (err) {
         logger.error({ err, ...req.body.email }, "Error Registering User")
         if (err instanceof z.ZodError) {
-            res.status(400).json(err.message)
+            res.status(400).json(err)
             return
         }
         if (err instanceof Error && "code" in err) {

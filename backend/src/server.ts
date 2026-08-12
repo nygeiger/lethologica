@@ -2,7 +2,7 @@ import express, { type Express } from "express"
 import cors from "cors";
 import env from "./config/env.js"
 import healthRoute from "./modules/health/health.router.js";
-import authRoute from "./modules/auth/auth.routes.js";
+import authRoute from "./modules/auth/auth.router.js";
 import wordsRouter from "./modules/words/words.router.js";
 import { authenticateJWT } from "./middleware/authenticate.js";
 import listsRouter from "./modules/lists/lists.router.js";
