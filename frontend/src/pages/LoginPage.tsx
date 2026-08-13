@@ -26,11 +26,12 @@ export const LoginPage = () => {
 const LoginCard = () => {
     const navigate = useNavigate()
     const authContext = useAuthContext();
-    const [loginFailed, setLoginFailed] = useState(false)
+    const [errorMessage, setErrorMessage] = useState("")
     const [loginState, setLoginState] = useState<{ email: string, pass: string }>({ email: "", pass: "" })
 
-    const handleInput = (e: React.InputEvent<HTMLInputElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setLoginState({ ...loginState, [e.currentTarget.id]: e.currentTarget.value })
+        setErrorMessage("")
     }
 
     const handleLogin = async (e: React.SubmitEvent<HTMLFormElement>) => {
@@ -40,7 +41,7 @@ const LoginCard = () => {
             authContext.login(token)
             navigate("/today")
         } catch (error) {
-            setLoginFailed(true)
+            setErrorMessage("The username or password you entered is incorrect")
         }
     }
 
@@ -61,7 +62,7 @@ const LoginCard = () => {
                                 id="email"
                                 type="email"
                                 placeholder="m@example.com"
-                                onInput={handleInput}
+                                onChange={handleChange}
                                 required
                             />
                         </div>
@@ -78,11 +79,12 @@ const LoginCard = () => {
                             <Input
                                 id="pass"
                                 type="password"
-                                onInput={handleInput}
+                                onChange={handleChange}
                                 required />
                         </div>
                     </div>
                 </form>
+                {errorMessage && <span className="text-red-500">{errorMessage}</span>}
             </CardContent>
             <CardFooter className="flex-col gap-2">
                 <Button type="submit" form="login" className="w-full" onClick={() => { console.log("clicked") }}>
@@ -91,10 +93,12 @@ const LoginCard = () => {
                 {/* <Button variant="outline" className="w-full">
                     Login with Google
                 </Button> */}
-                <Button variant="outline" className="w-full">
+                {/* <Button variant="outline" className="w-full">
                     Continue as guest
+                </Button> */}
+                <Button variant="outline" className="w-full mt-4 bg-gray-300" onClick={() => { navigate("/register") }}>
+                    Register
                 </Button>
-                {loginFailed && <span className="text-red-500">The username or password you entered is incorrect</span>}
             </CardFooter>
         </Card>
     )
