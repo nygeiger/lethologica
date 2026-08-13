@@ -213,7 +213,7 @@ export const getListShares = async (listId: string): Promise<Share[]> => {
     }
 }
 
-export const addShare = async (listId: string, userEmail: string, role: Role): Promise<Share[]> => {
+export const addShare = async (listId: string, userEmail: string, role: Role): Promise<string> => {
     try {
         if (!authToken) throw new ApiError("user not authorized", 401);
         const response = await api.post(`${LIST_URL}/${listId}/shares`, { userEmail, role });
