@@ -1,10 +1,10 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
-import { LoginPage } from './pages/LoginPage';
+import LoginPage from './pages/LoginPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import HistoryPage from './pages/HistoryPage';
 import ListDetailPage from './pages/ListDetailPage';
 import ListsPage from './pages/ListsPage';
-import { RegisterPage } from './pages/RegisterPage';
+import RegisterPage from './pages/RegisterPage';
 import TodayPage from './pages/TodayPage';
 
 const App = () => {
