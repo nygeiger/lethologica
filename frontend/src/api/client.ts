@@ -1,7 +1,7 @@
 import axios, { AxiosError } from "axios"
 import z, { ZodError } from "zod";
 import env from "../config/env"
-import { ApiError } from "../utlis/ApiError";
+import { ApiError } from "../utils/ApiError";
 
 const HEALTH_URL = `/health`
 const AUTH_URL = `/auth`
