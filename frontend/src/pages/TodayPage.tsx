@@ -1,69 +1,31 @@
 import { Button } from "@/components/ui/button";
-import { getNextWord, getUser, updateUserWordProgress, type WordQueryResult } from "../api/client"
-import { useAuthContext } from "../context/AuthContext"
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card"
-import { MenuIcon } from 'lucide-react';
-import {
-    Drawer,
-    DrawerClose,
-    DrawerContent,
-    DrawerFooter,
-    DrawerHeader,
-    DrawerTrigger,
-} from "@/components/ui/drawer"
-import { useEffect, useRef, useState } from "react";
-import { ApiError } from "@/utlis/ApiError";
+import { getNextWord, updateUserWordProgress, type Word, type WordQueryResult } from "../api/client"
+import { useEffect, useState } from "react";
+import { ApiError } from "@/utlis/ApiError.ts";
 import { cn } from "@/lib/utils";
 import { shuffleArray } from "../utlis/utils.ts"
-import { useNavigate } from "react-router-dom";
-
-const ANSWERS_STORAGE_KEY = 'lethologica.answers'
-
-
-function loadAnswers(): string[] {
-    try {
-        const raw = localStorage.getItem(ANSWERS_STORAGE_KEY)
-        return raw ? JSON.parse(raw) : []
-    } catch (err) {
-        return []
-    }
-}
-
-function saveAnswers(answers: string[]) {
-    try {
-        localStorage.setItem(ANSWERS_STORAGE_KEY, JSON.stringify(answers))
-    } catch (err) {
-        // ignore
-    }
-}
-
-function clearStoredAnswers() {
-    try {
-        localStorage.removeItem(ANSWERS_STORAGE_KEY)
-    } catch (err) {
-        // ignore
-    }
-}
+import WordCard from "@/components/WordCard.tsx";
+import Menu from "@/components/Menu.tsx";
+import { userStorage } from "@/utlis/session.ts";
 
 const TodayPage = () => {
-    const authContext = useAuthContext();
-    const [currentWord, setCurrentWord] = useState<WordQueryResult>()
+    const [currentWord, setCurrentWord] = useState<Word>()
     const [incorrectChosen, setIncorrectChosen] = useState(false)
     const [correctChosen, setCorrectChosen] = useState(false)
-    const [answers, setAnswers] = useState<string[]>(() => loadAnswers())
+    const [answers, setAnswers] = useState<string[]>(() => userStorage.loadAnswers())
     const [options, setOptions] = useState<{ text: string, id: string | number }[]>([])
-    const currentId = String(currentWord?.word_id ?? currentWord?.id)
+    const currentId = String(currentWord?.id)
 
     const nextWord = async () => {
         try {
-            const word = await getNextWord() satisfies WordQueryResult
+            const wordQueryResult = await getNextWord() satisfies WordQueryResult
+            const word: Word = {
+                id: Number(wordQueryResult.word_id ?? wordQueryResult.id),
+                word: wordQueryResult.word,
+                def: wordQueryResult.def,
+                example: wordQueryResult.example,
+                pronunciation_url: wordQueryResult.pronunciation_url
+            }
             setCurrentWord(word)
         } catch (err) {
 
@@ -71,7 +33,7 @@ const TodayPage = () => {
     }
 
     const clearAnswers = () => {
-        clearStoredAnswers()
+        userStorage.clearStoredAnswers()
         setAnswers([])
     }
 
@@ -82,7 +44,7 @@ const TodayPage = () => {
     useEffect(() => {
         if (currentWord) {
             setOptions(shuffleArray([
-                { text: currentWord.def, id: currentWord?.word_id ?? currentWord?.id! },
+                { text: currentWord.def, id: currentId },
                 { text: "Temp Choice 2", id: '9999' },
                 { text: "Temp Choice 3", id: '9998' },
                 { text: "Temp Choice 4", id: '9997' }
@@ -101,15 +63,10 @@ const TodayPage = () => {
         const isCorrect = choiceId === currentId
         const next = [...answers, choiceId]
         setAnswers(next)
-        saveAnswers(next)
+        userStorage.saveAnswers(next)
 
         if (isCorrect) setCorrectChosen(true)
         else setIncorrectChosen(true)
-    }
-
-    const handleLogout = () => {
-        clearAnswers()
-        authContext.logout()
     }
 
     const handleUpdateProgress = async (rating: number) => {
@@ -134,14 +91,14 @@ const TodayPage = () => {
 
     return (
         <>
-            <div className="absolute top-0 right-0"><Menu handleLogout={handleLogout} /></div>
+            <div className="absolute top-0 right-0"><Menu /></div>
             <div className="flex flex-col items-center justify-center">
                 <h1 className="text-2xl pt-20 mb-25">Lethologica</h1>
                 {currentWord ?
                     <div>
                         <WordCard word={currentWord} displayDef={false} />
                         <OptionsGrid
-                            correctId={currentWord.word_id ?? currentWord.id!}
+                            correctId={currentId}
                             correctChosen={correctChosen}
                             options={options}
                             answers={answers}
@@ -155,131 +112,6 @@ const TodayPage = () => {
     )
 }
 export default TodayPage;
-
-interface MenuProps {
-    handleLogout: () => void
-}
-
-export function Menu(props: MenuProps) {
-    const { handleLogout } = props
-    const navigate = useNavigate()
-    const [open, setOpen] = useState(false)
-    const [userEmail, setUserEmail] = useState<String>()
-
-    const getUserEmail = async () => {
-        try {
-            const user = await getUser()
-            setUserEmail(user.email)
-        } catch (err) {
-            console.log(err)
-        }
-    }
-
-    return (
-        <Drawer
-            open={open}
-            onOpenChange={(isOpen) => {
-                setOpen(isOpen)
-                if (isOpen && !userEmail) getUserEmail() // hitting client on mount can happen before authtoken set
-            }}
-            swipeDirection="right"
-        >
-            <DrawerTrigger render={<Button variant="ghost"><MenuIcon className="size-5" /></Button>} />
-            <DrawerContent>
-                <DrawerHeader>
-                    {/* <DrawerTitle>{userEmail}</DrawerTitle> */}
-                    {/* <DrawerDescription>{userEmail}</DrawerDescription> */}
-                </DrawerHeader>
-                <div className="flex flex-col scroll-fade overflow-y-auto p-4">
-
-                    <Button variant={"link"} onClick={() => navigate("/history")}>View History</Button>
-                    <Button variant={"link"} onClick={() => navigate("/lists")}>View Lists</Button>
-                </div>
-                <DrawerFooter>
-                    <span className="text-gray-400">{userEmail}</span>
-                    <Button variant={"destructive"} onClick={handleLogout}>Logout</Button>
-                    <DrawerClose render={<Button variant="outline">Close</Button>} />
-                </DrawerFooter>
-            </DrawerContent>
-        </Drawer>
-    )
-}
-
-interface WordCardProps {
-    word: WordQueryResult
-    displayDef: boolean
-    getPreviousWord?: () => void
-}
-
-// will this truly only be displayed in TodayPage? Should get next word be a prop or should it be within the component? Same with word?
-// This could be used with lists as well. This would mean that methods for getting word should be abstracted away from component
-const WordCard = (props: WordCardProps) => {
-
-    const { word, displayDef } = props
-    // const [displayDef, setDisplayDef] = useState(false) // probably a prop value (usecase = display def when in lists or possibly going back to previous)
-    const [validAudio, setValidAudio] = useState(false)
-    const audioRef = useRef<HTMLAudioElement | null>(null)
-
-    useEffect(() => {
-        setValidAudio(false)
-        if (!word.pronunciation_url) {
-            setValidAudio(false)
-            audioRef.current = null
-            return
-        }
-
-        const audio = new Audio(word.pronunciation_url)
-        const timeout = setTimeout(() => {
-            audio.src = ''  // abort the load
-            setValidAudio(false)
-            audioRef.current = null
-        }, 3000)
-
-        audio.addEventListener('canplaythrough', () => {
-            clearTimeout(timeout)
-            setValidAudio(true)
-        })
-
-        audio.addEventListener('error', () => {
-            clearTimeout(timeout)
-            setValidAudio(false)
-            audioRef.current = null
-        })
-
-        audioRef.current = audio
-        audio.load()
-
-        return () => {
-            clearTimeout(timeout)
-        }
-    }, [word])
-
-    const handleAudio = () => {
-        audioRef.current?.play()
-    }
-
-
-    return (
-        <Card className="w-full max-w-sm mb-10">
-            <CardHeader>
-                <CardTitle>
-                    <span className="mr-2">{word.word}</span>
-                    {validAudio && <button onClick={handleAudio}>
-                        <img src="./icons/audio-speaker.svg" width={20} height={20} />
-                    </button>}
-                </CardTitle>
-                <CardDescription>
-                    {displayDef && word.def}
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                {word.example}
-            </CardContent>
-            <CardFooter className="flex-col gap-2">
-            </CardFooter>
-        </Card>
-    )
-}
 
 interface QuestionsGridProps {
     answers: string[]
