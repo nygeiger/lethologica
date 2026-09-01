@@ -5,7 +5,7 @@ import { setAuthToken } from "../api/client";
 const lsJwtKey = "jwt";
 const lsUserKey = "user";
 
-interface AuthContextType {
+export interface AuthContextType {
     token: string;
     userId: string;
     login: (jwt: string) => void;
