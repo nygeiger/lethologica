@@ -1,12 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { getNextWord, updateUserWordProgress, type Word, type WordQueryResult } from "../api/client"
 import { useEffect, useState } from "react";
-import { ApiError } from "@/utlis/ApiError.ts";
+import { ApiError } from "@/utils/ApiError.ts";
 import { cn } from "@/lib/utils";
-import { shuffleArray } from "../utlis/utils.ts"
+import { shuffleArray } from "../utils/utils.ts"
 import WordCard from "@/components/WordCard.tsx";
 import Menu from "@/components/Menu.tsx";
-import { userStorage } from "@/utlis/session.ts";
+import { userStorage } from "@/utils/session.ts";
 
 const TodayPage = () => {
     const [currentWord, setCurrentWord] = useState<Word>()
