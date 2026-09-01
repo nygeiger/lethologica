@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-export const LoginPage = () => {
+const LoginPage = () => {
     return (
         <div className="flex flex-col gap-25 items-center justify-center">
             <h1 className="text-2xl pt-20">Lethologica</h1>
@@ -22,6 +22,7 @@ export const LoginPage = () => {
         </div>
     )
 }
+export default LoginPage;
 
 const LoginCard = () => {
     const navigate = useNavigate()
@@ -50,7 +51,7 @@ const LoginCard = () => {
             <CardHeader>
                 <CardTitle>Login to your account</CardTitle>
                 <CardDescription>
-                    Enter your email below to login to your account
+                    Enter your email and password below to login to your account
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -63,6 +64,7 @@ const LoginCard = () => {
                                 type="email"
                                 placeholder="m@example.com"
                                 onChange={handleChange}
+                                autoComplete="username"
                                 required
                             />
                         </div>
@@ -80,6 +82,7 @@ const LoginCard = () => {
                                 id="pass"
                                 type="password"
                                 onChange={handleChange}
+                                autoComplete="current-password"
                                 required />
                         </div>
                     </div>
@@ -87,7 +90,7 @@ const LoginCard = () => {
                 {errorMessage && <span className="text-red-500">{errorMessage}</span>}
             </CardContent>
             <CardFooter className="flex-col gap-2">
-                <Button type="submit" form="login" className="w-full" onClick={() => { console.log("clicked") }}>
+                <Button type="submit" form="login" className="w-full" >
                     Login
                 </Button>
                 {/* <Button variant="outline" className="w-full">

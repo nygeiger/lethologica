@@ -48,6 +48,16 @@ export const dbGetNextWord = async (userId: string) => {
     return dbGetNextSeenWord(queryParams)
 }
 
+export const getWord = (wordId: number) => {
+    const queryParams = [wordId]
+    return dbQuery<UserWordProgress>("SELECT * FROM words WHERE id=$1", queryParams)
+}
+
+export const getRandomDefs = (excludedWordId: number) => {
+    const queryParams = [excludedWordId]
+    return dbQuery<UserWordProgress>("SELECT def FROM words WHERE id<>$1", queryParams)
+}
+
 export const dbGetUserWordProg = (userId: string, wordId: number) => {
     const queryParams = [userId, wordId]
     return dbQuery<UserWordProgress>("SELECT * FROM user_word_progress WHERE user_id=$1 AND word_id=$2", queryParams)
