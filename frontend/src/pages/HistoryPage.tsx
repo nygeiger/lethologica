@@ -26,7 +26,7 @@ const HistoryPage = () => {
     return (<>
         <div className="absolute top-0 right-0"><Menu /></div>
         <div className="flex flex-col items-center justify-center">
-            <h1 className="text-2xl pt-20 mb-25">Lethologica</h1>
+            <h1 className="text-2xl pt-20 mb-25">History</h1>
             {history ?
                 sortedHistory.length === 0 ? <div>No words reviewed yet. Head back to today's word to get started.</div> :
                     <div className="flex flex-col">

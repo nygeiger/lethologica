@@ -33,11 +33,11 @@ const handleApiError = (error: unknown): ApiError => {
             const zodErr = JSON.parse(error.response?.data.message)[0]
             return new ApiError(zodErr.code, error.status ?? 500)
         } else if (error.response?.data === "23505") {
-            throw new ApiError("resource already exists", 500)
+            return new ApiError("resource already exists", 500)
         } else if (error.status === 404) {
             return new ApiError(error.response?.data.message ?? "resource(s) not found", error.status)
         }
-        console.log(new ApiError(error.response!.data.message, error.status!));
+        // console.log(new ApiError(error.response!.data.message, error.status!));
         return new ApiError(error.response!.data.message, error.status!);
     } else if (error instanceof ZodError) {
         return new ApiError(error.issues[0].code, 500)
@@ -58,7 +58,7 @@ export const getHealthCheck = async () => {
         const healthCheckResponse = healthCheckResponseSchema.parse(response.data);
         return healthCheckResponse;
     } catch (error) {
-        console.log("Error getting HealthCheck: ", error);
+        // console.log("Error getting HealthCheck: ", error);
         handleApiError(error)
     }
 }
