@@ -88,7 +88,7 @@ function CreateListDialog(props: CreateListDialogProps) {
   const [open, setOpen] = useState(false)
   const listNameRef = useRef<HTMLInputElement>(null);
 
-  const createList2 = async (e: React.SubmitEvent<HTMLFormElement>) => {
+  const handleCreateList = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault()
     const listName = listNameRef.current?.value
     if (listName) {
@@ -121,7 +121,7 @@ function CreateListDialog(props: CreateListDialogProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button size={"icon-xs"} variant={"outline"} className={"bg-blue-600 text-white"}><PlusIcon /></Button>} />
       <DialogContent className="sm:max-w-sm">
-        <form id="create-list" onSubmit={createList2}>
+        <form id="create-list" onSubmit={handleCreateList}>
           <DialogHeader>
             <DialogTitle>Create List</DialogTitle>
             <DialogDescription>
