@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { requirePermission } from "./requireListAccess.js";
-import { getAllLists, getList, addWordToList, renameList, deleteList, removeWordFromList, createList } from "./lists.controller.js";
+import { getAllLists, getList, addWordToList, renameList, deleteList, removeWordFromList, createList, getListWords } from "./lists.controller.js";
 import sharesRouter from "../shares/shares.router.js";
 
 const listsRouter: Router = Router()
@@ -8,6 +8,7 @@ const listsRouter: Router = Router()
 //* middleware chain: authenticateJWT
 listsRouter.get("/", getAllLists)
 listsRouter.get("/:listId", requirePermission("canView"), getList)
+listsRouter.get("/:listId/words", requirePermission("canView"), getListWords)
 
 listsRouter.post("/", createList)
 listsRouter.post("/:listId/words/:wordId", requirePermission("canEdit"), addWordToList)

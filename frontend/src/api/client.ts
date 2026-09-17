@@ -109,8 +109,16 @@ const listSchema = z.object({
     id: z.string(),
     list_name: z.string(),
     owner_id: z.string(),
-    created_at: z.string()
+    created_at: z.string(),
+    can_edit: z.boolean()
 })
+const listWordsSchema = z.array(z.object({
+    "id": z.coerce.number(),
+    "word": z.string(),
+    "def": z.string(),
+    "example": z.string(),
+    "pronunciation_url": z.string()
+}))
 const getListsResponseSchema = z.array(listSchema)
 export type List = z.infer<typeof listSchema>
 
@@ -131,6 +139,17 @@ export const getList = async (listId: string): Promise<List> => {
         const response = await api.get(`${LIST_URL}/${listId}`);
         const list = listSchema.parse(response.data);
         return list;
+    } catch (error) {
+        throw handleApiError(error)
+    }
+}
+
+export const getListWords = async (listId: string): Promise<Word[]> => {
+    try {
+        if (!authToken) throw new ApiError("user not authorized", 401);
+        const response = await api.get(`${LIST_URL}/${listId}/words`);
+        const listWords = listWordsSchema.parse(response.data);
+        return listWords;
     } catch (error) {
         throw handleApiError(error)
     }

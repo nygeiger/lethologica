@@ -96,7 +96,7 @@ const TodayPage = () => {
                 <h1 className="text-2xl pt-20 mb-25">Lethologica</h1>
                 {currentWord ?
                     <div>
-                        <WordCard word={currentWord} displayDef={false} />
+                        <WordCard word={currentWord} displayDef={false} displayAddToList={correctChosen} />
                         <OptionsGrid
                             correctId={currentId}
                             correctChosen={correctChosen}
