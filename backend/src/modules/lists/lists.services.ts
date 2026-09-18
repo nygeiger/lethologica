@@ -8,12 +8,14 @@ export const dbGetLists = (userId: string) => {
         `SELECT lists.*,
             CASE
                 WHEN lists.owner_id = $1 THEN true
-                WHEN ls.role IN ('owner', 'editor') THEN true
+                WHEN EXISTS (
+                    SELECT 1 FROM list_shares ls WHERE ls.list_id = lists.id AND ls.shared_with_user_id = $1 AND ls.role IN ('owner','editor')
+                ) THEN true
                 ELSE false
             END as can_edit
         FROM lists
-        LEFT JOIN list_shares as ls ON lists.id = ls.list_id
-        WHERE lists.owner_id=$1 OR ls.shared_with_user_id=$1
+        WHERE lists.owner_id = $1
+           OR EXISTS (SELECT 1 FROM list_shares s WHERE s.list_id = lists.id AND s.shared_with_user_id = $1)
         ORDER BY lists.created_at DESC`, queryParams)
 }
 
@@ -23,12 +25,14 @@ export const dbGetList = (userId: string, listId: string) => {
         `SELECT lists.*,
             CASE
                 WHEN lists.owner_id = $1 THEN true
-                WHEN ls.role IN ('owner', 'editor') THEN true
+                WHEN EXISTS (
+                    SELECT 1 FROM list_shares ls WHERE ls.list_id = lists.id AND ls.shared_with_user_id = $1 AND ls.role IN ('owner','editor')
+                ) THEN true
                 ELSE false
             END as can_edit
         FROM lists
-        LEFT JOIN list_shares as ls ON lists.id = ls.list_id
-        WHERE lists.id=$2 AND (lists.owner_id=$1 OR ls.shared_with_user_id=$1)`, queryParams
+        WHERE lists.id = $2
+          AND (lists.owner_id = $1 OR EXISTS (SELECT 1 FROM list_shares s WHERE s.list_id = lists.id AND s.shared_with_user_id = $1))`, queryParams
     )
 }
 

@@ -6,6 +6,7 @@ import authRoute from "./modules/auth/auth.router.js";
 import wordsRouter from "./modules/words/words.router.js";
 import { authenticateJWT } from "./middleware/authenticate.js";
 import listsRouter from "./modules/lists/lists.router.js";
+import usersRouter from "./modules/users/users.router.js";
 import logger from "./utils/logger.js";
 
 const app: Express = express()
@@ -15,6 +16,7 @@ app.use("/api/health", healthRoute)
 app.use("/api/auth", authRoute)
 app.use("/api/words", authenticateJWT, wordsRouter)
 app.use("/api/lists", authenticateJWT, listsRouter)
+app.use("/api/users", authenticateJWT, usersRouter)
 
 app.use((err: any, req: express.Request, res: any, next: any) => {
     logger.error(req, "Something went wrong. Please try again later.")

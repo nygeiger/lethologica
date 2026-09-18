@@ -214,7 +214,8 @@ const shareSchema = z.object({
     list_id: z.string(),
     shared_with_user_id: z.string(),
     role: z.enum(roles),
-    created_at: z.string()
+    created_at: z.string(),
+    shared_with_email: z.string()
 })
 export type Share = z.infer<typeof shareSchema>
 
@@ -316,6 +317,19 @@ export const getUserHistory = async (): Promise<JoinedWordAndUWPResult> => {
         const response = await api.get(`${WORDS_URL}/history`);
         const userHistory = joinedWordAndUWPSchema.parse(response.data)
         return userHistory;
+    } catch (error) {
+        throw handleApiError(error)
+    }
+}
+
+/* users */
+const userSearchSchema = z.array(z.object({ id: z.string(), email: z.string() }))
+export const searchUsers = async (emailQuery: string, listId: string): Promise<{ id: string, email: string }[]> => {
+    try {
+        if (!authToken) throw new ApiError("user not authorized", 401);
+        const response = await api.get(`${AUTH_URL.replace('/auth','/users')}/search`, { params: { email: emailQuery, listId } })
+        const users = userSearchSchema.parse(response.data)
+        return users
     } catch (error) {
         throw handleApiError(error)
     }

@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import { PencilLine, Settings, Trash2, Users } from 'lucide-react';
+import SharesManager from '@/components/SharesManager'
 import { getList, getListWords, type List, type Word } from "@/api/client";
 import Menu from '@/components/Menu';
 import { ApiError } from '@/utils/ApiError';
@@ -83,11 +84,12 @@ function ListActionsMenu(props: { listId?: string, list?: List, reloadList?: () 
     const { listId, list, reloadList } = props
     const [renameOpen, setRenameOpen] = useState(false)
     const [deleteOpen, setDeleteOpen] = useState(false)
+    const [sharesOpen, setSharesOpen] = useState(false)
     const renameRef = useRef<HTMLInputElement>(null)
 
     const listActions = [
         { label: 'Rename list', icon: <PencilLine className="size-4" />, onClick: () => setRenameOpen(true) },
-        { label: 'Manage shares', icon: <Users className="size-4" />, onClick: () => console.info('Manage shares is not implemented yet.') },
+        { label: 'Manage shares', icon: <Users className="size-4" />, onClick: () => setSharesOpen(true) },
         { label: 'Delete list', icon: <Trash2 className="size-4" />, onClick: () => setDeleteOpen(true) },
     ]
 
@@ -145,7 +147,7 @@ function ListActionsMenu(props: { listId?: string, list?: List, reloadList?: () 
 
             {/* Rename dialog */}
             <Dialog open={renameOpen} onOpenChange={setRenameOpen}>
-                <DialogTrigger render={<div />} />
+                <DialogTrigger />
                 <DialogContent className="sm:max-w-sm">
                     <form id="rename-list" onSubmit={handleRenameList}>
                         <DialogHeader>
@@ -167,7 +169,7 @@ function ListActionsMenu(props: { listId?: string, list?: List, reloadList?: () 
 
             {/* Delete dialog */}
             <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-                <DialogTrigger render={<div />} />
+                <DialogTrigger />
                 <DialogContent className="sm:max-w-sm">
                     <DialogHeader>
                         <DialogTitle>Delete list</DialogTitle>
@@ -179,6 +181,9 @@ function ListActionsMenu(props: { listId?: string, list?: List, reloadList?: () 
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            {/* Shares manager dialog (owned lists only) */}
+            <SharesManager listId={listId!} open={sharesOpen} onOpenChange={setSharesOpen} />
         </DropdownMenu>
     )
 }

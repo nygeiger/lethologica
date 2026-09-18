@@ -39,7 +39,7 @@ const removeWordSchema = z.object({
 export async function getAllLists(req: Request, res: Response) {
     try {
         const lists = await dbGetLists(req.user!.userId)
-        logger.debug(`lists: ${lists}`)
+        logger.debug(`lists: ${lists.rows.map((list) => list.list_name)}`)
         if (!lists.rowCount) {
             res.status(404).json({ message: "No lists found" })
             return
