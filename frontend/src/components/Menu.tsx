@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/drawer"
 import { Button } from "@/components/ui/button"
 import { useAuthContext } from "@/context/AuthContext"
-import { userStorage } from "@/utils/session"
 
 const Menu = () => {
     const authContext = useAuthContext();
