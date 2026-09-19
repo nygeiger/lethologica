@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Field, FieldGroup } from "@/components/ui/field"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useAuthContext } from "@/context/AuthContext"
 
 const ListsPage = () => {
@@ -47,7 +48,7 @@ const ListsPage = () => {
           <div className="flex flex-col">
             {lists.map((val) => { return <ListCard key={val.id} list={val} /> })}
           </div>
-        : <div>Loading...</div>}
+        : <div className="w-full max-w-sm"><Skeleton className="h-32 w-full rounded-xl" /></div>}
     </div>
   </>)
 }

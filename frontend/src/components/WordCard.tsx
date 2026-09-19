@@ -6,6 +6,7 @@ import { Button } from "./ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog"
 import { addWordToList, getUsersLists } from "@/api/client"
 import { toast } from "@/components/ui/toast"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface WordCardProps {
     word: Word
@@ -138,7 +139,11 @@ const WordCard = (props: WordCardProps) => {
 
                         <div className="flex flex-col gap-2 pt-2">
                             {listsLoading ? (
-                                <p className="text-sm text-muted-foreground">Loading lists...</p>
+                                <div className="space-y-2">
+                                    <Skeleton className="h-10 w-full rounded-md" />
+                                    <Skeleton className="h-10 w-full rounded-md" />
+                                    <Skeleton className="h-10 w-full rounded-md" />
+                                </div>
                             ) : editableLists.length === 0 ? (
                                 <p className="text-sm text-muted-foreground">You do not have any editable lists yet.</p>
                             ) : (

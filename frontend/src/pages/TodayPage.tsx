@@ -7,6 +7,7 @@ import { shuffleArray } from "../utils/utils.ts"
 import WordCard from "@/components/WordCard.tsx";
 import Menu from "@/components/Menu.tsx";
 import { userStorage } from "@/utils/session.ts";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const TodayPage = () => {
     const [currentWord, setCurrentWord] = useState<Word>()
@@ -120,8 +121,12 @@ const TodayPage = () => {
                         <div>
                             <WordCard word={currentWord} displayDef={false} displayAddToList={correctChosen} />
                             {options ? options.length === 0
-                                ? <div>Loading Options...</div>
-                                // ? <div className="text-red-500 text-sm">Failed to load answer choices. Try refreshing.</div>
+                                ? <div className="grid w-full max-w-sm grid-cols-2 gap-2">
+                                    <Skeleton className="h-20 w-full rounded-md" />
+                                    <Skeleton className="h-20 w-full rounded-md" />
+                                    <Skeleton className="h-20 w-full rounded-md" />
+                                    <Skeleton className="h-20 w-full rounded-md" />
+                                </div>
                                 : <OptionsGrid
                                     correctId={currentWord.id}
                                     correctChosen={correctChosen}
@@ -129,13 +134,12 @@ const TodayPage = () => {
                                     answers={answers}
                                     onAnswer={handleAnswer}
                                 />
-                                // : <div>Loading Options...</div>
                                 : <div className="text-red-500 text-sm">Failed to load answer choices. Try refreshing.</div>
                             }
                             <Rating correctChosen={correctChosen} showCorrect={!incorrectChosen} handleUpdateProgress={handleUpdateProgress} />
                         </div>
                         : <div className="text-red-500 text-sm">Failed to load your next word. Try refreshing.</div>
-                    : <div>Loading...</div>
+                    : <div className="w-full max-w-sm"><Skeleton className="h-40 w-full rounded-xl" /></div>
                 }
             </div>
         </>
