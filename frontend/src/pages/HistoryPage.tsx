@@ -30,7 +30,7 @@ const HistoryPage = () => {
             {history ?
                 sortedHistory.length === 0 ? <div>No words reviewed yet. Head back to today's word to get started.</div> :
                     <div className="flex flex-col">
-                        {sortedHistory.map((val) => { return <WordCard key={val.word.id} word={val.word} displayDef={true} /> })}
+                        {sortedHistory.map((val) => { return <WordCard key={val.word.id} word={val.word} displayDef={true} displayAddToList={true} /> })}
                     </div>
                 : <div>Loading...</div>}
         </div>

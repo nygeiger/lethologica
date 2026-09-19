@@ -29,5 +29,30 @@ export const userStorage = {
         } catch (err) {
             // ignore
         }
+    },
+
+    loadOptions: (): { text: string, id: number }[] => {
+        try {
+            const raw = localStorage.getItem(LOCAL_STORAGE_KEYS.words)
+            return raw ? JSON.parse(raw) : []
+        } catch (err) {
+            return []
+        }
+    },
+
+    saveOptions: (options: { text: string, id: number }[]) => {
+        try {
+            localStorage.setItem(LOCAL_STORAGE_KEYS.words, JSON.stringify(options))
+        } catch (err) {
+            // ignore
+        }
+    },
+
+    clearStoredOptions: () => {
+        try {
+            localStorage.removeItem(LOCAL_STORAGE_KEYS.words)
+        } catch (err) {
+            // ignore
+        }
     }
 }

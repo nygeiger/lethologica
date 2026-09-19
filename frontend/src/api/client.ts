@@ -109,8 +109,16 @@ const listSchema = z.object({
     id: z.string(),
     list_name: z.string(),
     owner_id: z.string(),
-    created_at: z.string()
+    created_at: z.string(),
+    can_edit: z.boolean()
 })
+const listWordsSchema = z.array(z.object({
+    "id": z.coerce.number(),
+    "word": z.string(),
+    "def": z.string(),
+    "example": z.string(),
+    "pronunciation_url": z.string()
+}))
 const getListsResponseSchema = z.array(listSchema)
 export type List = z.infer<typeof listSchema>
 
@@ -131,6 +139,17 @@ export const getList = async (listId: string): Promise<List> => {
         const response = await api.get(`${LIST_URL}/${listId}`);
         const list = listSchema.parse(response.data);
         return list;
+    } catch (error) {
+        throw handleApiError(error)
+    }
+}
+
+export const getListWords = async (listId: string): Promise<Word[]> => {
+    try {
+        if (!authToken) throw new ApiError("user not authorized", 401);
+        const response = await api.get(`${LIST_URL}/${listId}/words`);
+        const listWords = listWordsSchema.parse(response.data);
+        return listWords;
     } catch (error) {
         throw handleApiError(error)
     }
@@ -195,7 +214,8 @@ const shareSchema = z.object({
     list_id: z.string(),
     shared_with_user_id: z.string(),
     role: z.enum(roles),
-    created_at: z.string()
+    created_at: z.string(),
+    shared_with_email: z.string()
 })
 export type Share = z.infer<typeof shareSchema>
 
@@ -263,10 +283,12 @@ export const wordSchema = z.object({
     pronunciation_url: z.string()
 });
 const wordQuerySchema = wordSchema.extend(userWordProgressSchema.partial().shape)
+const wordOptionSchema = z.object({ id: z.coerce.number(), def: z.string() })
 export const joinedWordAndUWPSchema = z.array(z.object({ word: wordSchema, uwp: userWordProgressSchema }))
 export type UserWordProgress = z.infer<typeof userWordProgressSchema>;
 export type Word = z.infer<typeof wordSchema>;
 export type WordQueryResult = z.infer<typeof wordQuerySchema>
+export type WordOption = z.infer<typeof wordOptionSchema>
 export type JoinedWordAndUWPResult = z.infer<typeof joinedWordAndUWPSchema>;
 
 export const getNextWord = async (): Promise<WordQueryResult> => {
@@ -278,6 +300,12 @@ export const getNextWord = async (): Promise<WordQueryResult> => {
     } catch (error) {
         throw handleApiError(error)
     }
+}
+
+export const getRandomWords = async (exclude: number, limit: number): Promise<WordOption[]> => {
+    if (!authToken) throw new ApiError("user not authorized", 401);
+    const response = await api.get(`/words/random?exclude=${exclude}&limit=${limit}`)
+    return z.array(z.object({ id: z.number(), def: z.string() })).parse(response.data)
 }
 
 export const updateUserWordProgress = async (wordId: number, rating: number): Promise<UserWordProgress> => {
@@ -297,6 +325,19 @@ export const getUserHistory = async (): Promise<JoinedWordAndUWPResult> => {
         const response = await api.get(`${WORDS_URL}/history`);
         const userHistory = joinedWordAndUWPSchema.parse(response.data)
         return userHistory;
+    } catch (error) {
+        throw handleApiError(error)
+    }
+}
+
+/* users */
+const userSearchSchema = z.array(z.object({ id: z.string(), email: z.string() }))
+export const searchUsers = async (emailQuery: string, listId: string): Promise<{ id: string, email: string }[]> => {
+    try {
+        if (!authToken) throw new ApiError("user not authorized", 401);
+        const response = await api.get(`${AUTH_URL.replace('/auth', '/users')}/search`, { params: { email: emailQuery, listId } })
+        const users = userSearchSchema.parse(response.data)
+        return users
     } catch (error) {
         throw handleApiError(error)
     }

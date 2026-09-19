@@ -1,22 +1,48 @@
 import { dbQuery } from "../../config/db.js"
+import type { Word } from "../words/types.js"
 import type { List } from "./types.js"
 
 export const dbGetLists = (userId: string) => {
     const queryParams = [userId]
     return dbQuery<List>(
-        `SELECT lists.*
+        `SELECT lists.*,
+            CASE
+                WHEN lists.owner_id = $1 THEN true
+                WHEN EXISTS (
+                    SELECT 1 FROM list_shares ls WHERE ls.list_id = lists.id AND ls.shared_with_user_id = $1 AND ls.role IN ('owner','editor')
+                ) THEN true
+                ELSE false
+            END as can_edit
         FROM lists
-        LEFT JOIN list_shares as ls ON lists.id = ls.list_id
-        WHERE lists.owner_id=$1 OR ls.shared_with_user_id=$1
+        WHERE lists.owner_id = $1
+           OR EXISTS (SELECT 1 FROM list_shares s WHERE s.list_id = lists.id AND s.shared_with_user_id = $1)
         ORDER BY lists.created_at DESC`, queryParams)
 }
 
 export const dbGetList = (userId: string, listId: string) => {
     const queryParams = [userId, listId]
     return dbQuery<List>(
-        `SELECT lists.* FROM lists
-        LEFT JOIN list_shares as ls ON lists.id = ls.list_id
-        WHERE lists.id=$2 AND (lists.owner_id=$1 OR ls.shared_with_user_id=$1)`, queryParams
+        `SELECT lists.*,
+            CASE
+                WHEN lists.owner_id = $1 THEN true
+                WHEN EXISTS (
+                    SELECT 1 FROM list_shares ls WHERE ls.list_id = lists.id AND ls.shared_with_user_id = $1 AND ls.role IN ('owner','editor')
+                ) THEN true
+                ELSE false
+            END as can_edit
+        FROM lists
+        WHERE lists.id = $2
+          AND (lists.owner_id = $1 OR EXISTS (SELECT 1 FROM list_shares s WHERE s.list_id = lists.id AND s.shared_with_user_id = $1))`, queryParams
+    )
+}
+
+export const dbGetListWords = (listId: string) => {
+    const queryParams = [listId]
+    return dbQuery<Word[]>(
+        `SELECT w.*
+        FROM list_words lw
+        JOIN words w ON w.id = lw.word_id
+        WHERE lw.list_id = $1`, queryParams
     )
 }
 

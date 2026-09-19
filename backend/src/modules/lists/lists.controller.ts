@@ -1,10 +1,14 @@
 import type { Request, Response } from "express";
-import { dbAddWordToList, dbCreateList, dbDeleteList, dbGetList, dbGetLists, dbRemoveWordFromList, dbRenameList } from "./lists.services.js";
+import { dbAddWordToList, dbCreateList, dbDeleteList, dbGetList, dbGetLists, dbGetListWords, dbRemoveWordFromList, dbRenameList } from "./lists.services.js";
 import z from "zod"
 import logger from "../../utils/logger.js";
 
 const getListSchema = z.object({
     userId: z.string(),
+    listId: z.string()
+})
+
+const getListWordsSchema = z.object({
     listId: z.string()
 })
 
@@ -35,7 +39,7 @@ const removeWordSchema = z.object({
 export async function getAllLists(req: Request, res: Response) {
     try {
         const lists = await dbGetLists(req.user!.userId)
-        logger.debug(`lists: ${lists}`)
+        logger.debug(`lists: ${lists.rows.map((list) => list.list_name)}`)
         if (!lists.rowCount) {
             res.status(404).json({ message: "No lists found" })
             return
@@ -65,6 +69,30 @@ export async function getList(req: Request, res: Response) {
             return
         }
         res.status(200).json(list.rows[0])
+    } catch (err) {
+        logger.error(err)
+        if (err instanceof z.ZodError) {
+            res.status(400).json(err.message)
+            return
+        }
+        if (err instanceof Error && "code" in err) {
+            res.status(500).json(err.code)
+            return
+        }
+        res.status(404).json({ message: "No list found" })
+    }
+}
+
+export async function getListWords(req: Request, res: Response) {
+    try {
+        const listWordsReq = getListWordsSchema.parse({ ...req.params })
+        const listWords = await dbGetListWords(listWordsReq.listId)
+        logger.debug(`listWords: , ${listWords}`)
+        if (!listWords.rowCount) {
+            res.status(404).json({ message: "No list found" })
+            return
+        }
+        res.status(200).json(listWords.rows)
     } catch (err) {
         logger.error(err)
         if (err instanceof z.ZodError) {
@@ -116,7 +144,7 @@ export async function addWordToList(req: Request, res: Response) {
         }
         if (err instanceof Error && "code" in err) {
             if (err.code === "23505") {
-                res.status(200).json({ message: "Word already in list" })
+                res.status(409).json({ message: "Word already in list" })
                 return
             }
             if (err.code === "23503") {

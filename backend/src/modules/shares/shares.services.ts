@@ -5,8 +5,11 @@ import type { Share } from "./types.js"
 export const dbGetListShares = (listId: string) => {
     const queryParams = [listId]
     return dbQuery<Share>(
-        `SELECT * FROM list_shares
-        WHERE list_id=$1 ORDER BY created_at DESC`, queryParams
+        `SELECT ls.*, u.email as shared_with_email
+        FROM list_shares ls
+        JOIN users u ON u.id = ls.shared_with_user_id
+        WHERE ls.list_id = $1
+        ORDER BY ls.created_at DESC`, queryParams
     )
 }
 

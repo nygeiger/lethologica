@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { getNextWord, updateUserWordProgress, type Word, type WordQueryResult } from "../api/client"
+import { getNextWord, getRandomWords, updateUserWordProgress, type Word, type WordQueryResult } from "../api/client"
 import { useEffect, useState } from "react";
 import { ApiError } from "@/utils/ApiError.ts";
 import { cn } from "@/lib/utils";
@@ -13,14 +13,14 @@ const TodayPage = () => {
     const [incorrectChosen, setIncorrectChosen] = useState(false)
     const [correctChosen, setCorrectChosen] = useState(false)
     const [answers, setAnswers] = useState<string[]>(() => userStorage.loadAnswers())
-    const [options, setOptions] = useState<{ text: string, id: string | number }[]>([])
-    const currentId = String(currentWord?.id)
+    const [options, setOptions] = useState<{ text: string, id: number }[]>(() => userStorage.loadOptions())
+    const currentIdString = String(currentWord?.id)
 
     const nextWord = async () => {
         try {
             const wordQueryResult = await getNextWord() satisfies WordQueryResult
             const word: Word = {
-                id: Number(wordQueryResult.word_id ?? wordQueryResult.id),
+                id: Number(wordQueryResult.word_id ?? wordQueryResult.id), //? TODO: JSON map query result?
                 word: wordQueryResult.word,
                 def: wordQueryResult.def,
                 example: wordQueryResult.example,
@@ -37,30 +37,52 @@ const TodayPage = () => {
         setAnswers([])
     }
 
+    const clearOptions = () => {
+        userStorage.clearStoredOptions()
+        setOptions([])
+    }
+
     useEffect(() => {
         nextWord()
     }, [])
 
     useEffect(() => {
-        if (currentWord) {
-            setOptions(shuffleArray([
-                { text: currentWord.def, id: currentId },
-                { text: "Temp Choice 2", id: '9999' },
-                { text: "Temp Choice 3", id: '9998' },
-                { text: "Temp Choice 4", id: '9997' }
-            ]))
+        if (!currentWord) return
 
-            if (answers.includes(String(currentId))) {
-                setCorrectChosen(true)
-            }
-            if (answers.length > 0 && !answers.every((val) => val === currentId)) {
-                setIncorrectChosen(true)
-            }
+        const savedOptions = userStorage.loadOptions()
+        if (savedOptions.length === 4 && savedOptions.some(option => String(option.id) === String(currentWord.id))) {
+            setOptions(savedOptions)
+            if (answers.includes(currentIdString)) setCorrectChosen(true)
+            if (answers.length > 0 && !answers.every((val) => val === currentIdString)) setIncorrectChosen(true)
+            return
         }
+
+        getRandomWords(currentWord.id, 3)
+            .then(wrongWords => {
+                const shuffled = shuffleArray([
+                    { text: currentWord.def, id: currentWord.id },
+                    ...wrongWords.map(w => ({ text: w.def, id: w.id }))
+                ])
+                setOptions(shuffled)
+                userStorage.saveOptions(shuffled)
+                clearAnswers()
+            })
+            .catch(() => {
+                // fallback to placeholders if fetch fails
+                const fallback = shuffleArray([
+                    { text: currentWord.def, id: currentWord.id },
+                    { text: "Temp Choice 2", id: 9999 },
+                    { text: "Temp Choice 3", id: 9998 },
+                    { text: "Temp Choice 4", id: 9997 }
+                ])
+                setOptions(fallback)
+                userStorage.saveOptions(fallback)
+                clearAnswers()
+            })
     }, [currentWord])
 
     const handleAnswer = (choiceId: string) => {
-        const isCorrect = choiceId === currentId
+        const isCorrect = choiceId === currentIdString
         const next = [...answers, choiceId]
         setAnswers(next)
         userStorage.saveAnswers(next)
@@ -71,9 +93,10 @@ const TodayPage = () => {
 
     const handleUpdateProgress = async (rating: number) => {
         try {
-            await updateUserWordProgress(Number(currentId), rating)
+            await updateUserWordProgress(currentWord!.id, rating)
 
             clearAnswers()
+            clearOptions()
 
             setIncorrectChosen(false)
             setCorrectChosen(false)
@@ -96,9 +119,9 @@ const TodayPage = () => {
                 <h1 className="text-2xl pt-20 mb-25">Lethologica</h1>
                 {currentWord ?
                     <div>
-                        <WordCard word={currentWord} displayDef={false} />
+                        <WordCard word={currentWord} displayDef={false} displayAddToList={correctChosen} />
                         <OptionsGrid
-                            correctId={currentId}
+                            correctId={currentWord.id}
                             correctChosen={correctChosen}
                             options={options}
                             answers={answers}
@@ -115,9 +138,9 @@ export default TodayPage;
 
 interface QuestionsGridProps {
     answers: string[]
-    correctId: string | number
+    correctId: number
     correctChosen: boolean
-    options: { text: string, id: string | number }[]
+    options: { text: string, id: number }[]
     onAnswer: (choiceId: string) => void
 }
 
@@ -157,7 +180,7 @@ const Rating = (props: RatingProps) => {
     const { correctChosen, showCorrect, handleUpdateProgress } = props
     const [showRatings, setShowRatings] = useState(false)
     const ratings = showCorrect ?
-        [{ rating: 5, text: "Perfect recall" }, { rating: 4, text: "Correct with minor hesitation" }, { rating: 3, text: "Correct but required significant effort" }]
+        [{ rating: 5, text: "Perfect recall" }, { rating: 4, text: "Correct with minor hesitation" }, { rating: 3, text: "Correct but required significant effort or guessed" }]
         : [{ rating: 2, text: "Wrong but easy to recall after seeing it" }, { rating: 1, text: "Wrong but the answer felt familiar" }, { rating: 0, text: "Complete blackout" }]
 
     const handleShowRatings = () => {
