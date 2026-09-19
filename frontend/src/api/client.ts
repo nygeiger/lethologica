@@ -283,10 +283,12 @@ export const wordSchema = z.object({
     pronunciation_url: z.string()
 });
 const wordQuerySchema = wordSchema.extend(userWordProgressSchema.partial().shape)
+const wordOptionSchema = z.object({ id: z.coerce.number(), def: z.string() })
 export const joinedWordAndUWPSchema = z.array(z.object({ word: wordSchema, uwp: userWordProgressSchema }))
 export type UserWordProgress = z.infer<typeof userWordProgressSchema>;
 export type Word = z.infer<typeof wordSchema>;
 export type WordQueryResult = z.infer<typeof wordQuerySchema>
+export type WordOption = z.infer<typeof wordOptionSchema>
 export type JoinedWordAndUWPResult = z.infer<typeof joinedWordAndUWPSchema>;
 
 export const getNextWord = async (): Promise<WordQueryResult> => {
@@ -298,6 +300,12 @@ export const getNextWord = async (): Promise<WordQueryResult> => {
     } catch (error) {
         throw handleApiError(error)
     }
+}
+
+export const getRandomWords = async (exclude: number, limit: number): Promise<WordOption[]> => {
+    if (!authToken) throw new ApiError("user not authorized", 401);
+    const response = await api.get(`/words/random?exclude=${exclude}&limit=${limit}`)
+    return z.array(z.object({ id: z.number(), def: z.string() })).parse(response.data)
 }
 
 export const updateUserWordProgress = async (wordId: number, rating: number): Promise<UserWordProgress> => {
@@ -327,7 +335,7 @@ const userSearchSchema = z.array(z.object({ id: z.string(), email: z.string() })
 export const searchUsers = async (emailQuery: string, listId: string): Promise<{ id: string, email: string }[]> => {
     try {
         if (!authToken) throw new ApiError("user not authorized", 401);
-        const response = await api.get(`${AUTH_URL.replace('/auth','/users')}/search`, { params: { email: emailQuery, listId } })
+        const response = await api.get(`${AUTH_URL.replace('/auth', '/users')}/search`, { params: { email: emailQuery, listId } })
         const users = userSearchSchema.parse(response.data)
         return users
     } catch (error) {

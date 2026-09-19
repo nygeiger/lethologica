@@ -53,9 +53,22 @@ export const getWord = (wordId: number) => {
     return dbQuery<UserWordProgress>("SELECT * FROM words WHERE id=$1", queryParams)
 }
 
-export const getRandomDefs = (excludedWordId: number) => {
-    const queryParams = [excludedWordId]
-    return dbQuery<UserWordProgress>("SELECT def FROM words WHERE id<>$1", queryParams)
+export const dbGetRandomWords = (excludedWordId: number | null, limit: number) => {
+    const params: (number | null)[] = []
+    let whereClause = ''
+    if (excludedWordId !== null) {
+        params.push(excludedWordId)
+        whereClause = 'WHERE id != $1'
+    }
+    const limitParamIndex = params.length + 1
+    params.push(limit)
+    return dbQuery<{ id: number; def: string }>(
+        `SELECT id, def FROM words
+        ${whereClause}
+        ORDER BY RANDOM()
+        LIMIT $${limitParamIndex}`,
+        params
+    )
 }
 
 export const dbGetUserWordProg = (userId: string, wordId: number) => {
