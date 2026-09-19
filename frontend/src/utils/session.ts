@@ -1,10 +1,22 @@
 const LOCAL_STORAGE_KEYS = {
+    jwt: "lethologica.jwt",
+    user: "lethologica.user",
     answers: 'lethologica.answers',
     words: 'lethologica.words',
 } as const
 
+// const lsJwtKey = "jwt";
+// const lsUserKey = "user";
 export const userStorage = {
     clearAll: () => Object.values(LOCAL_STORAGE_KEYS).forEach(k => localStorage.removeItem(k)),
+
+    getJWT: () => localStorage.getItem(LOCAL_STORAGE_KEYS.jwt),
+    setJWT: (token: string) => localStorage.setItem(LOCAL_STORAGE_KEYS.jwt, token),
+    clearJWT: () => localStorage.removeItem(LOCAL_STORAGE_KEYS.jwt),
+
+    getUser: () => localStorage.getItem(LOCAL_STORAGE_KEYS.user),
+    setUser: (userId: string) => localStorage.setItem(LOCAL_STORAGE_KEYS.user, userId),
+    clearUser: () => localStorage.removeItem(LOCAL_STORAGE_KEYS.user),
 
     loadAnswers: (): string[] => {
         try {

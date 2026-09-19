@@ -1,9 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { jwtDecode } from "jwt-decode";
 import { setAuthToken } from "../api/client";
-
-const lsJwtKey = "jwt";
-const lsUserKey = "user";
+import { userStorage } from "@/utils/session";
 
 export interface AuthContextType {
     token: string;
@@ -25,35 +23,42 @@ interface AuthTokenPayload {
 }
 
 export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
-    const [token, setToken] = useState<string>(() => {
-        const stored = localStorage.getItem(lsJwtKey);
-        if (!stored) return "";
-        const decoded = jwtDecode<AuthTokenPayload>(stored);
-        if (decoded.exp * 1000 < Date.now()) {
-            localStorage.removeItem(lsJwtKey);
-            localStorage.removeItem(lsUserKey);
-            return "";
+    const [token, setToken] = useState("")
+    const [userId, setUserId] = useState("");
+    const [authReady, setAuthReady] = useState(false)
+
+    useEffect(() => {
+        const stored = userStorage.getJWT()
+        if (stored) {
+            const decoded = jwtDecode<AuthTokenPayload>(stored)
+            if (decoded.exp * 1000 > Date.now()) {
+                setToken(stored)
+                setAuthToken(stored)  // set module-level token immediately
+                setUserId(decoded.userId)
+            } else {
+                userStorage.clearJWT()
+            }
         }
-        return stored;
-    });
-    const [userId, setUserId] = useState<string>(localStorage.getItem(lsUserKey) || "");
+        setAuthReady(true)  // auth is initialized regardless of whether token exists
+    }, [])
 
     useEffect(() => {
         if (token) {
-            localStorage.setItem(lsJwtKey, token);
+            userStorage.setJWT(token)
             const newUser = jwtDecode<AuthTokenPayload>(token);
             setUserId(newUser.userId);
-            localStorage.setItem(lsUserKey, newUser.userId);
+            userStorage.setUser(newUser.userId)
         } else {
-            localStorage.removeItem(lsJwtKey);
-            localStorage.removeItem(lsUserKey);
+            userStorage.clearJWT()
+            userStorage.clearUser()
             setUserId("");
         }
-        setAuthToken(token)
     }, [token])
 
-    function login(jwt: string) { setToken(jwt); }
-    function logout() { setToken(""); }
+    function login(jwt: string) { setToken(jwt); setAuthToken(jwt); }
+    function logout() { setToken(""); setAuthToken(""); }
+
+    if (!authReady) return <div className="flex items-center justify-center h-screen">Loading Account...</div>
 
     return (
         <AuthCContext value={{ token, userId, login, logout }}>
