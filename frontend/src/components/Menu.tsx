@@ -31,7 +31,6 @@ const Menu = () => {
 
     const logout = () => {
         sessionStorage
-        userStorage.clearAll()
         authContext.logout()
     }
 

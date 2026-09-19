@@ -56,7 +56,7 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
     }, [token])
 
     function login(jwt: string) { setToken(jwt); setAuthToken(jwt); }
-    function logout() { setToken(""); setAuthToken(""); }
+    function logout() { setToken(""); setAuthToken(""); userStorage.clearAll() }
 
     if (!authReady) return <div className="flex items-center justify-center h-screen">Loading Account...</div>
 
