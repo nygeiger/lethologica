@@ -7,17 +7,20 @@ import { shuffleArray } from "../utils/utils.ts"
 import WordCard from "@/components/WordCard.tsx";
 import Menu from "@/components/Menu.tsx";
 import { userStorage } from "@/utils/session.ts";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const TodayPage = () => {
     const [currentWord, setCurrentWord] = useState<Word>()
+    const [wordLoaded, setWordLoaded] = useState(false)
     const [incorrectChosen, setIncorrectChosen] = useState(false)
     const [correctChosen, setCorrectChosen] = useState(false)
     const [answers, setAnswers] = useState<string[]>(() => userStorage.loadAnswers())
-    const [options, setOptions] = useState<{ text: string, id: number }[]>(() => userStorage.loadOptions())
+    const [options, setOptions] = useState<{ text: string, id: number }[] | null>(() => userStorage.loadOptions())
     const currentIdString = String(currentWord?.id)
 
     const nextWord = async () => {
         try {
+            setWordLoaded(false)
             const wordQueryResult = await getNextWord() satisfies WordQueryResult
             const word: Word = {
                 id: Number(wordQueryResult.word_id ?? wordQueryResult.id), //? TODO: JSON map query result?
@@ -28,7 +31,9 @@ const TodayPage = () => {
             }
             setCurrentWord(word)
         } catch (err) {
-
+            setCurrentWord(undefined)
+        } finally {
+            setWordLoaded(true)
         }
     }
 
@@ -68,16 +73,10 @@ const TodayPage = () => {
                 clearAnswers()
             })
             .catch(() => {
-                // fallback to placeholders if fetch fails
-                const fallback = shuffleArray([
-                    { text: currentWord.def, id: currentWord.id },
-                    { text: "Temp Choice 2", id: 9999 },
-                    { text: "Temp Choice 3", id: 9998 },
-                    { text: "Temp Choice 4", id: 9997 }
-                ])
-                setOptions(fallback)
-                userStorage.saveOptions(fallback)
+                // empty options triggers error state
+                setOptions(null)
                 clearAnswers()
+                clearOptions()
             })
     }, [currentWord])
 
@@ -117,19 +116,31 @@ const TodayPage = () => {
             <div className="absolute top-0 right-0"><Menu /></div>
             <div className="flex flex-col items-center justify-center">
                 <h1 className="text-2xl pt-20 mb-25">Lethologica</h1>
-                {currentWord ?
-                    <div>
-                        <WordCard word={currentWord} displayDef={false} displayAddToList={correctChosen} />
-                        <OptionsGrid
-                            correctId={currentWord.id}
-                            correctChosen={correctChosen}
-                            options={options}
-                            answers={answers}
-                            onAnswer={handleAnswer}
-                        />
-                        <Rating correctChosen={correctChosen} showCorrect={!incorrectChosen} handleUpdateProgress={handleUpdateProgress} />
-                    </div>
-                    : <div>Loading...</div>}
+                {wordLoaded ?
+                    currentWord ?
+                        <div>
+                            <WordCard word={currentWord} displayDef={false} displayAddToList={correctChosen} />
+                            {options ? options.length === 0
+                                ? <div className="grid w-full max-w-sm grid-cols-2 gap-2">
+                                    <Skeleton className="h-20 w-full rounded-md" />
+                                    <Skeleton className="h-20 w-full rounded-md" />
+                                    <Skeleton className="h-20 w-full rounded-md" />
+                                    <Skeleton className="h-20 w-full rounded-md" />
+                                </div>
+                                : <OptionsGrid
+                                    correctId={currentWord.id}
+                                    correctChosen={correctChosen}
+                                    options={options}
+                                    answers={answers}
+                                    onAnswer={handleAnswer}
+                                />
+                                : <div className="text-red-500 text-sm">Failed to load answer choices. Try refreshing.</div>
+                            }
+                            <Rating correctChosen={correctChosen} showCorrect={!incorrectChosen} handleUpdateProgress={handleUpdateProgress} />
+                        </div>
+                        : <div className="text-red-500 text-sm">Failed to load your next word. Try refreshing.</div>
+                    : <div className="w-full max-w-sm"><Skeleton className="h-40 w-full rounded-xl" /></div>
+                }
             </div>
         </>
     )

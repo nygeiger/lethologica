@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useAuthContext } from '@/context/AuthContext';
 import { renameList, deleteList } from '@/api/client'
+import { Skeleton } from '@/components/ui/skeleton'
 
 const ListDetailPage = () => {
     const { listId } = useParams()
@@ -72,7 +73,7 @@ const ListDetailPage = () => {
                         <div className="flex flex-col">
                             {listWords.map((val) => { return <WordCard key={val.id} word={val} displayDef={true} displayAddToList={true} /> })}
                         </div>
-                    : <div>Loading...</div>}
+                    : <div className="w-full max-w-sm space-y-4"><Skeleton className="h-40 w-full rounded-xl" /></div>}
             </div>
         </>
     )

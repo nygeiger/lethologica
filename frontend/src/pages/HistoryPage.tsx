@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react"
 import { getUserHistory, type JoinedWordAndUWPResult } from "@/api/client"
 import Menu from "@/components/Menu"
 import WordCard from "@/components/WordCard"
+import { Skeleton } from "@/components/ui/skeleton"
 
 const HistoryPage = () => {
     const [history, setHistory] = useState<JoinedWordAndUWPResult>()
@@ -32,7 +33,7 @@ const HistoryPage = () => {
                     <div className="flex flex-col">
                         {sortedHistory.map((val) => { return <WordCard key={val.word.id} word={val.word} displayDef={true} displayAddToList={true} /> })}
                     </div>
-                : <div>Loading...</div>}
+                : <div className="w-full max-w-sm"><Skeleton className="h-40 w-full rounded-xl" /></div>}
         </div>
     </>)
 }
