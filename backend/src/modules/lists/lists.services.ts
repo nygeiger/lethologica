@@ -16,7 +16,7 @@ export const dbGetLists = (userId: string) => {
         FROM lists
         WHERE lists.owner_id = $1
            OR EXISTS (SELECT 1 FROM list_shares s WHERE s.list_id = lists.id AND s.shared_with_user_id = $1)
-        ORDER BY lists.created_at DESC`, queryParams)
+        ORDER BY lists.modified_at DESC`, queryParams)
 }
 
 export const dbGetList = (userId: string, listId: string) => {

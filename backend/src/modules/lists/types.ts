@@ -14,5 +14,6 @@ export type List = {
     list_name: string
     owner_id: string
     created_at: string
+    modified_at: string
     can_edit: boolean
 }
