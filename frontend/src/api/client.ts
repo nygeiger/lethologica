@@ -110,6 +110,7 @@ const listSchema = z.object({
     list_name: z.string(),
     owner_id: z.string(),
     created_at: z.string(),
+    modified_at: z.string(),
     can_edit: z.boolean()
 })
 const listWordsSchema = z.array(z.object({
