@@ -22,12 +22,16 @@ const authedLoginResponse = z.object({
 })
 
 let token: string;
+const testAuthEmail = `testAuth-${Date.now()}@example.com`
+const testUserEmail = "testuser@example.com"
 
 beforeAll(async () => {
     const response = await request(app).post('/api/auth/register').send({
-        email: 'testAuth@example.com',
+        email: testAuthEmail,
         pass: 'password123'
     })
+    expect(response.status).toBe(201)
+    expect(typeof response.body).toBe('string')
     token = response.body
 })
 
@@ -35,7 +39,7 @@ describe('POST /api/auth/register', () => {
 
     it('happy path returns 201 and a token', async () => {
         const response = await request(app).post('/api/auth/register').send({
-            email: 'test@example.com',
+            email: testUserEmail,
             pass: 'password123'
         })
         expect(response.status).toBe(201)
@@ -44,7 +48,7 @@ describe('POST /api/auth/register', () => {
 
     it('duplicate email returns 409', async () => {
         const response = await request(app).post('/api/auth/register').send({
-            email: 'test@example.com',
+            email: testUserEmail,
             pass: 'password123'
         })
         expect(response.status).toBe(409)
@@ -54,7 +58,7 @@ describe('POST /api/auth/register', () => {
 describe('POST /api/auth/login', () => {
     it('happy path returns 200 and a token', async () => {
         const response = await request(app).post('/api/auth/login').send({
-            email: 'test@example.com',
+            email: testUserEmail,
             pass: 'password123'
         })
         expect(response.status).toBe(200)
@@ -63,7 +67,7 @@ describe('POST /api/auth/login', () => {
 
     it('wrong password returns 401', async () => {
         const response = await request(app).post('/api/auth/login').send({
-            email: 'test@example.com',
+            email: testUserEmail,
             pass: 'pasword12'
         })
         expect(response.status).toBe(401)
@@ -83,7 +87,7 @@ describe('GET /api/auth/me', () => {
     it('valid token returns user data', async () => {
         const response = await request(app).get('/api/auth/me')
             .set('Authorization', `Bearer ${token}`)
-            .send()
+            .send();
         expect(response.status).toBe(200)
         expect(authedLoginResponse.safeParse(response.body).success).toBe(true)
     })

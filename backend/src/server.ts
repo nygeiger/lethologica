@@ -18,7 +18,8 @@ app.use("/api/words", authenticateJWT, wordsRouter)
 app.use("/api/lists", authenticateJWT, listsRouter)
 app.use("/api/users", authenticateJWT, usersRouter)
 
-app.use((err: any, req: express.Request, res: any, next: any) => {
+// app.use((err: any, req: express.Request, res: any, next: any) => {
+app.use((_: any, req: express.Request, res: any) => {
     logger.error(req, "Something went wrong. Please try again later.")
     if (!res.headersSent) { // Check if a response has already been sent
         res.status(500).send({ message: "Something went wrong. Please try again later", req: req })
