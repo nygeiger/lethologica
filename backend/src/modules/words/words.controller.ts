@@ -17,7 +17,6 @@ const randomQuerySchema = z.object({
 
 export async function getNextWord(req: Request, res: Response) {
     try {
-        logger.debug("In getNextWord")
         const wordResult = (await dbGetNextWord(req.user!.userId)).rows[0]
         if (!wordResult) {
             res.status(404).json({ message: "No words available" })
@@ -32,7 +31,6 @@ export async function getNextWord(req: Request, res: Response) {
 
 export async function updateWordProgress(req: Request, res: Response) {
     try {
-        logger.debug("in updateWordProgress")
         const userId = req.user!.userId
         const updateWordReq = updateWordSchema.parse({ ...req.params, ...req.body })
         const wordProgress = (await dbGetUserWordProg(userId, updateWordReq.wordId)).rows[0]
@@ -66,7 +64,6 @@ export async function updateWordProgress(req: Request, res: Response) {
 }
 
 export async function getUserHistory(req: Request, res: Response) {
-    logger.debug("in getUserHistory")
     try {
         const userId = req.user!.userId
         const wordHistory: JoinedWordAndUWPResult[] = (await dbGetUserHistory(userId)).rows
@@ -74,7 +71,6 @@ export async function getUserHistory(req: Request, res: Response) {
             res.status(200).json([])
             return
         }
-        logger.debug(wordHistory, "printing user history")
         res.status(200).json(wordHistory)
     } catch (err) {
         logger.error(err, "Error fetching word history")

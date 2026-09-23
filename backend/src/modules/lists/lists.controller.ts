@@ -39,7 +39,6 @@ const removeWordSchema = z.object({
 export async function getAllLists(req: Request, res: Response) {
     try {
         const lists = await dbGetLists(req.user!.userId)
-        logger.debug(`lists: ${lists.rows.map((list) => list.list_name)}`)
         if (!lists.rowCount) {
             res.status(404).json({ message: "No lists found" })
             return
@@ -63,7 +62,6 @@ export async function getList(req: Request, res: Response) {
     try {
         const listReq = getListSchema.parse({ ...req.user!, ...req.params })
         const list = await dbGetList(listReq.userId, listReq.listId)
-        logger.debug(`list: , ${list}`)
         if (!list.rowCount) {
             res.status(404).json({ message: "No list found" })
             return
@@ -87,7 +85,6 @@ export async function getListWords(req: Request, res: Response) {
     try {
         const listWordsReq = getListWordsSchema.parse({ ...req.params })
         const listWords = await dbGetListWords(listWordsReq.listId)
-        logger.debug(`listWords: , ${listWords}`)
         if (!listWords.rowCount) {
             res.status(404).json({ message: "No list found" })
             return
@@ -111,7 +108,6 @@ export async function createList(req: Request, res: Response) {
     try {
         const createListRq = createListSchema.parse({ ...req.user!, ...req.body })
         const newList = await dbCreateList(createListRq.userId, createListRq.listName)
-        logger.debug(`createdList: ${newList}`)
         res.status(201).json({ message: `List "${newList.rows[0]?.list_name}" created successfully` })
     } catch (err) {
         logger.error(err)
@@ -134,7 +130,6 @@ export async function addWordToList(req: Request, res: Response) {
     try {
         const createListRq = addWordToListSchema.parse({ ...req.params })
         const addedWord = await dbAddWordToList(createListRq.listId, createListRq.wordId)
-        logger.debug(`addedWord: ${addedWord}`)
         res.status(201).json({ message: `${addedWord.rows[0]?.word} added to ${addedWord.rows[0]!.list_name} successfully` })
     } catch (err) {
         logger.error(err)
@@ -181,7 +176,6 @@ export async function deleteList(req: Request, res: Response) {
     try {
         const deleteListReq = deleteListSchema.parse({ ...req.params })
         const deletedList = await dbDeleteList(deleteListReq.listId)
-        logger.debug(`deleteList: ${deletedList}`)
         res.status(200).json({ message: `Deleted "${deletedList.rows[0]!.list_name}" successfully` })
     } catch (err) {
         logger.error(err)
@@ -199,7 +193,6 @@ export async function deleteList(req: Request, res: Response) {
 
 export async function removeWordFromList(req: Request, res: Response) {
     try {
-        logger.debug("in removeWordFromList")
 
         const removeWordReq = removeWordSchema.parse({ ...req.params })
         const removedWordResult = await dbRemoveWordFromList(removeWordReq.listId, removeWordReq.wordId)

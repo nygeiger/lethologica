@@ -31,7 +31,6 @@ export async function getShares(req: Request, res: Response) {
             res.status(200).json({ message: "No shares found" })
             return
         }
-        logger.debug(listShares)
         res.status(200).json(listShares.rows)
     } catch (err) {
         logger.error({ err, ...req.params }, "Error retrieving shares for list")
@@ -55,7 +54,6 @@ export async function addShare(req: Request, res: Response) {
             res.status(404).json({ message: "No user found with that email" })
             return
         }
-        logger.debug(newShare)
         res.status(200).json({ message: "Successfully added user to list" })
     } catch (err) {
         logger.error(err)
@@ -73,14 +71,12 @@ export async function addShare(req: Request, res: Response) {
 
 export async function updateShare(req: Request, res: Response) {
     try {
-        logger.debug("In update list share")
         const updateShareReq = updateShareSchema.parse({ ...req.params, ...req.body })
         const updatedShare = await dbUpdateListSharePermission(updateShareReq.shareId, updateShareReq.role)
         if (!updatedShare.rowCount) {
             res.status(404).json({ message: "Failed to update share settings" })
             return
         }
-        logger.debug(updatedShare)
         res.status(200).json({ message: `updated user's role to ${updateShareReq.role}` })
     } catch (err) {
         logger.error(err)
