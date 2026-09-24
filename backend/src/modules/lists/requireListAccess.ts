@@ -9,7 +9,31 @@ const permReqSchema = z.object({
     listId: z.string()
 })
 
-//* middleware chain: authenticateJWT
+/**
+ * Creates a list-access middleware factory for a required permission level.
+ *
+ * This uses the factory pattern: the route calls `requirePermission("canEdit")`, which returns
+ * a middleware function bound to that specific permission. The returned middleware then checks
+ * the current request user and list against the store's ownership and share rules.
+ *
+ * Valid permission levels are defined by the shared `Permission` union and the role map:
+ * - `canView` - read access
+ * - `canEdit` - add/remove/update list content
+ * - `canShare` - manage sharing settings
+ * - `isOwner` - list ownership checks
+ *
+ * The middleware expects an authenticated user to already be attached to `req.user.userId` by
+ * the auth middleware. It does not add a custom permission flag to `req`; it simply reads the
+ * authenticated user and list id and either calls `next()` or responds with an error.
+ *
+ * @param requiredPerm The permission that must be granted for the route to proceed.
+ * @returns An Express middleware function that authorizes or rejects the request.
+ *
+ * @remarks If the user is the list owner, access is immediately granted. Otherwise the code
+ * checks the `list_shares` table for a matching user/list role and verifies that the role has
+ * `requiredPerm` in `rolePermissions`. If neither condition passes, the middleware returns
+ * `403` with `{ message: "Insufficient permissions for action" }`.
+ */
 export function requirePermission(requiredPerm: Permission) {
     return async (req: Request, res: Response, next: NextFunction) => {
         try {
