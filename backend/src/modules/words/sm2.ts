@@ -1,22 +1,30 @@
 import type { UserWordProgress } from "./types.js";
 
-/*
-The Algorithm — SM-2
-This is the algorithm Anki uses. How it works:
-After a user sees a word, they rate how well they knew it on a scale of 0–5:
-
-0 — complete blackout
-1 — wrong, but the answer felt familiar
-2 — wrong, but easy to recall after seeing it
-3 — correct, but required significant effort
-4 — correct with minor hesitation
-5 — perfect recall
-
-The algorithm then calculates two things — the interval (how many days until you see it again) and the ease factor (a multiplier that adjusts based on performance):
-*/
-
 type UpdatedProgress = UserWordProgress
 
+/**
+ * Calculates the next review state for a word using the SM-2 spaced repetition algorithm.
+ *
+ * SM-2 is the same core algorithm used by Anki: after a learner rates how well they recalled
+ * a word (0-5), the system updates the review interval and ease factor so high-confidence
+ * words are revisited less frequently and weak words are revisited sooner.
+ *
+ * @param progress The user's current progress record for the word. This includes the prior
+ * ease factor, interval, review counts, and timestamps used to compute the next review.
+ * @param rating The self-reported recall score from 0 to 5, where 0 is total blackout and
+ * 5 is perfect recall.
+ * @returns A new progress object with the updated interval, next review timestamp, review
+ * counters, and `last_reviewed_at` timestamp. The returned object keeps all existing fields
+ * from `progress` and updates the values relevant to the next review cycle.
+ *
+ * @remarks The ease factor is clamped with a minimum floor of `1.3`, which prevents the
+ * algorithm from driving a card to an unrealistically low retention multiplier. The interval
+ * is scheduled as:
+ * - `1` day for ratings below 3
+ * - `1` day for the first two reviews, regardless of rating
+ * - `6` days after the third review if the learner got it right
+ * - otherwise the previous interval multiplied by the new ease factor and rounded
+ */
 export function calculateSM2(progress: UserWordProgress, rating: number): UpdatedProgress {
     const next_review_at = new Date()
     const new_ease_factor = Math.max(progress.ease_factor + (0.1 - (5 - rating) * (0.08 + (5 - rating) * 0.02)), 1.3)

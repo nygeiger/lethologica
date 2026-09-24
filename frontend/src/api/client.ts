@@ -303,6 +303,16 @@ export const getNextWord = async (): Promise<WordQueryResult> => {
     }
 }
 
+export const getWordById = async (wordId: number): Promise<Word> => {
+    try {
+        if (!authToken) throw new ApiError("user not authorized", 401);
+        const response = await api.get(`${WORDS_URL}/${wordId}`);
+        return wordSchema.parse(response.data);
+    } catch (error) {
+        throw handleApiError(error)
+    }
+}
+
 export const getRandomWords = async (exclude: number, limit: number): Promise<WordOption[]> => {
     if (!authToken) throw new ApiError("user not authorized", 401);
     const response = await api.get(`/words/random?exclude=${exclude}&limit=${limit}`)

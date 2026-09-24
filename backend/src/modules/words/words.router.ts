@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getNextWord, getUserHistory, updateWordProgress, getRandomWords } from "./words.controller.js";
+import { getNextWord, getUserHistory, updateWordProgress, getRandomWords, getWordById } from "./words.controller.js";
 
 const wordsRouter: Router = Router()
 
@@ -7,6 +7,7 @@ const wordsRouter: Router = Router()
 wordsRouter.get("/today", getNextWord)
 wordsRouter.get("/random", getRandomWords)
 wordsRouter.get("/history", getUserHistory)
+wordsRouter.get("/:wordId", getWordById)
 wordsRouter.patch("/:wordId/review", updateWordProgress)
 
 export default wordsRouter;

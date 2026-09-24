@@ -14,13 +14,15 @@ const dbGetTodaysWord = (queryParams: string[]) => {
         LIMIT 1`, queryParams)
 }
 
+//* Ordered by a per-user hash instead of RANDOM() so the same word is returned on every call
+//* until it's reviewed (the frontend re-requests it on refresh). Each user gets their own shuffled order.
 const dbGetUnseenWord = (queryParams: string[]) => {
     return dbQuery<WordQueryResult>(
         `SELECT * FROM words
         WHERE NOT EXISTS (
         SELECT id from user_word_progress as uwp
-        WHERE uwp.word_id=words.id AND uwp.user_id=$1 )
-        ORDER BY words.id ASC
+        WHERE uwp.word_id=words.id AND uwp.user_id=$1::uuid )
+        ORDER BY md5(words.id::text || $1::uuid::text)
         LIMIT 1`, queryParams)
 }
 
@@ -35,6 +37,25 @@ const dbGetNextSeenWord = (queryParams: string[]) => {
         LIMIT 1`, queryParams)
 }
 
+/**
+ * Selects the next word a user should practice using a three-step fallback chain.
+ *
+ * The function intentionally prioritizes the most urgent review before anything else:
+ * 1. `dbGetTodaysWord` checks for words whose `next_review_at` is already due. This is the
+ * highest priority because these are overdue cards that should be reviewed first to keep the
+ * study queue current.
+ * 2. `dbGetUnseenWord` falls back to any word the user has never seen. This ensures new words
+ * are introduced once all due reviews are handled, helping the learner steadily expand their
+ * vocabulary without ignoring the backlog.
+ * 3. `dbGetNextSeenWord` is used only after every word has been seen at least once. It returns
+ * the next word in the user's review queue by earliest `next_review_at`, even if it is not yet
+ * technically due, so the user can continue learning without a dead end.
+ *
+ * @param userId The authenticated user whose study queue is being selected.
+ * @returns The first matching query result from the fallback chain. If the user has due words,
+ * it returns those; otherwise unseen words; otherwise the earliest reviewed word. If all words
+ * have been seen and no rows remain in the queue, the final query returns an empty result set.
+ */
 export const dbGetNextWord = async (userId: string) => {
     const queryParams = [userId]
     let nextWord = await dbGetTodaysWord(queryParams)
