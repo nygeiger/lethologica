@@ -181,7 +181,3 @@ All routes except `/api/auth/register` and `/api/auth/login` require a JWT in th
 - **Quiz validation is client-side.** The correct definition is included in the word payload sent to the browser. A determined user could inspect the network response to find the answer without the server knowing. A production implementation would validate answers server-side.
 - **Word history is per-browser.** Review history for the back-navigation feature is stored in localStorage — it doesn't sync across devices and clears on logout.
 - **Word bank is fixed.** Users cannot add their own words in the current version.
-
----
-
-*Built by Nyles Geiger — [nygeiger.com](https://nygeiger.com)*
