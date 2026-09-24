@@ -1,6 +1,6 @@
 import z from "zod"
 import type { Request, Response } from "express"
-import { dbGetNextWord, dbGetUserHistory, dbGetUserWordProg, dbUpdateUserWordProg, dbGetRandomWords } from "./words.services.js"
+import { dbGetNextWord, dbGetUserHistory, dbGetUserWordProg, dbUpdateUserWordProg, dbGetRandomWords, getWord } from "./words.services.js"
 import { calculateSM2 } from "./sm2.js"
 import type { JoinedWordAndUWPResult, UserWordProgress } from "./types.js"
 import logger from "../../utils/logger.js"
@@ -15,6 +15,10 @@ const randomQuerySchema = z.object({
     limit: z.coerce.number()
 })
 
+const getWordQuerySchema = z.object({
+    wordId: z.coerce.number().min(0)
+})
+
 export async function getNextWord(req: Request, res: Response) {
     try {
         const wordResult = (await dbGetNextWord(req.user!.userId)).rows[0]
@@ -26,6 +30,27 @@ export async function getNextWord(req: Request, res: Response) {
     } catch (err) {
         logger.error(err, "Error retrieving word")
         res.status(500).json("Error retrieving word")
+    }
+}
+
+export async function getWordById(req: Request, res: Response) {
+    try {
+        const wordId = getWordQuerySchema.parse(req.params).wordId
+        const wordResult = (await getWord(wordId)).rows[0]
+
+        if (!wordResult) {
+            res.status(404).json({ message: "Word not found" })
+            return
+        }
+
+        res.status(200).json(wordResult)
+    } catch (err) {
+        logger.error(err, "Error retrieving word by id")
+        if (err instanceof z.ZodError) {
+            res.status(400).json(err.message)
+            return
+        }
+        res.status(500).json({ message: "Error retrieving word by id" })
     }
 }
 

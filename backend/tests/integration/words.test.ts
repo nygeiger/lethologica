@@ -51,6 +51,16 @@ describe('GET /api/words/today', () => {
     })
 })
 
+describe('GET /api/words/:wordId', () => {
+    it('returns a word by id for an authenticated user', async () => {
+        const response = await request(app).get(`/api/words/${word.id}`)
+            .set('Authorization', `Bearer ${userToken1}`)
+            .send()
+        expect(response.status).toBe(200)
+        expect(wordSchema.safeParse(response.body).success).toBe(true)
+    })
+})
+
 describe('PATCH /api/words/:wordId/review', () => {
     it('valid rating returns 200 and updated progress', async () => {
         const response = await request(app).patch(`/api/words/${word.id}/review`)
