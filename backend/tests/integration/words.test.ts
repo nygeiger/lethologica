@@ -49,6 +49,15 @@ describe('GET /api/words/today', () => {
         const response = await request(app).get('/api/words/today').send()
         expect(response.status).toBe(401)
     })
+
+    it('returns the same unseen word on repeated calls until it is reviewed', async () => {
+        const getToday = () => request(app).get('/api/words/today')
+            .set('Authorization', `Bearer ${noHistoryUserToken}`).send()
+        const first = await getToday()
+        const second = await getToday()
+        expect(first.status).toBe(200)
+        expect(second.body.id).toBe(first.body.id)
+    })
 })
 
 describe('GET /api/words/:wordId', () => {

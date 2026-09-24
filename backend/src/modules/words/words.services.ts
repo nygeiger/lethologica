@@ -14,13 +14,15 @@ const dbGetTodaysWord = (queryParams: string[]) => {
         LIMIT 1`, queryParams)
 }
 
+//* Ordered by a per-user hash instead of RANDOM() so the same word is returned on every call
+//* until it's reviewed (the frontend re-requests it on refresh). Each user gets their own shuffled order.
 const dbGetUnseenWord = (queryParams: string[]) => {
     return dbQuery<WordQueryResult>(
         `SELECT * FROM words
         WHERE NOT EXISTS (
         SELECT id from user_word_progress as uwp
-        WHERE uwp.word_id=words.id AND uwp.user_id=$1 )
-        ORDER BY words.id ASC
+        WHERE uwp.word_id=words.id AND uwp.user_id=$1::uuid )
+        ORDER BY md5(words.id::text || $1::uuid::text)
         LIMIT 1`, queryParams)
 }
 
