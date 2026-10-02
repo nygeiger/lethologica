@@ -29,7 +29,7 @@ const LandingPage = () => {
             <header className="flex flex-col items-center gap-6 pt-24 text-center max-w-xl">
                 <h1 className="text-4xl">Lethologica</h1>
                 <p className="text-sm text-muted-foreground italic">
-                    lethologica (n.) — the inability to remember a word
+                    lethologica (n.) — the temporary, psychological inability to remember a specific word or name, commonly known as the "tip-of-the-tongue" phenomenon.
                 </p>
                 <p className="text-lg">
                     Build a vocabulary you can actually recall, one word at a time.
