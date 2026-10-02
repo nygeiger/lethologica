@@ -8,7 +8,7 @@ import WordCard from "@/components/WordCard.tsx";
 import Menu from "@/components/Menu.tsx";
 import { userStorage, type HistoryEntry } from "@/utils/session.ts";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronUp, ChevronDown } from "lucide-react";
+import { ChevronUp, ChevronDown, Check, X } from "lucide-react";
 
 const TodayPage = () => {
     const [currentWord, setCurrentWord] = useState<Word>()
@@ -213,11 +213,11 @@ const TodayPage = () => {
                                 {!isViewingHistory && (
                                     <>
                                         {options ? options.length === 0
-                                            ? <div className="grid w-full max-w-sm grid-cols-2 gap-2">
-                                                <Skeleton className="h-20 w-full rounded-md" />
-                                                <Skeleton className="h-20 w-full rounded-md" />
-                                                <Skeleton className="h-20 w-full rounded-md" />
-                                                <Skeleton className="h-20 w-full rounded-md" />
+                                            ? <div className="grid w-full max-w-sm grid-cols-2 gap-2.5">
+                                                <Skeleton className="h-28 w-full rounded-xl" />
+                                                <Skeleton className="h-28 w-full rounded-xl" />
+                                                <Skeleton className="h-28 w-full rounded-xl" />
+                                                <Skeleton className="h-28 w-full rounded-xl" />
                                             </div>
                                             : <OptionsGrid
                                                 correctId={currentWord!.id}
@@ -254,27 +254,41 @@ interface QuestionsGridProps {
     onAnswer: (choiceId: string) => void
 }
 
-const cellStyling = "flex text-center text-black justify-center items-center outline-1 outline-black overflow-y-auto hover:cursor-pointer";
-const correctCell = "bg-green-500 text-white hover:cursor-default"
-const incorrectCell = "bg-red-500 text-white hover:cursor-default"
+const OPTION_LETTERS = ["A", "B", "C", "D"]
+
+const tileStyling = "flex min-h-28 flex-col items-start gap-2.5 rounded-xl bg-card p-3.5 text-left text-sm leading-relaxed text-card-foreground shadow-xs ring-1 ring-foreground/10 transition-[transform,box-shadow,background-color,opacity] duration-150 outline-none focus-visible:ring-2 focus-visible:ring-ring enabled:cursor-pointer enabled:hover:-translate-y-0.5 enabled:hover:shadow-md enabled:hover:ring-foreground/20 enabled:active:translate-y-0"
+const correctTile = "bg-emerald-50 text-emerald-950 ring-2 ring-emerald-600 shadow-md shadow-emerald-600/20 dark:bg-emerald-950/40 dark:text-emerald-50"
+const incorrectTile = "bg-rose-50 text-rose-950 ring-rose-300 dark:bg-rose-950/40 dark:text-rose-50 dark:ring-rose-800"
+const dimmedTile = "opacity-45"
+const badgeStyling = "inline-flex size-5.5 items-center justify-center rounded-md text-xs font-semibold"
+
 const OptionsGrid = (props: QuestionsGridProps) => {
     const { answers, correctId, correctChosen, options, onAnswer } = props
 
-    const handleAnswerSelection = (e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
-        if (!correctChosen) {
-            const choiceId = e.currentTarget.id
-            onAnswer(choiceId)
-        }
-    }
-
     return (
-        <div className="w-full max-w-sm grid grid-cols-2 auto-rows-fr">
-            {options.map((option) => {
-                const optionChosen = answers.includes(String(option.id));
-                const className2 = cn(cellStyling,
-                    optionChosen && (option.id === correctId ? correctCell : incorrectCell),
-                    correctChosen && "hover:cursor-auto")
-                return (<span key={option.id} id={`${option.id}`} onClick={handleAnswerSelection} className={className2}>{option.text}</span>)
+        <div className="grid w-full max-w-sm grid-cols-2 auto-rows-fr gap-2.5">
+            {options.map((option, index) => {
+                const optionChosen = answers.includes(String(option.id))
+                const isCorrect = option.id === correctId
+                return (
+                    <button
+                        key={option.id}
+                        type="button"
+                        disabled={optionChosen || correctChosen}
+                        onClick={() => onAnswer(String(option.id))}
+                        className={cn(tileStyling,
+                            optionChosen && (isCorrect ? correctTile : incorrectTile),
+                            !optionChosen && correctChosen && dimmedTile)}
+                    >
+                        {optionChosen
+                            ? <span className={cn(badgeStyling, "text-white", isCorrect ? "bg-emerald-600" : "bg-rose-600")}>
+                                {isCorrect ? <Check className="size-3.5" strokeWidth={3} /> : <X className="size-3.5" strokeWidth={3} />}
+                            </span>
+                            : <span className={cn(badgeStyling, "bg-muted text-muted-foreground")}>{OPTION_LETTERS[index]}</span>
+                        }
+                        <span>{option.text}</span>
+                    </button>
+                )
             })}
         </div>
     )
